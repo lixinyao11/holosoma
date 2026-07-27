@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# Exit on error, and print commands
+set -ex
+
+# Clear LD_LIBRARY_PATH to prevent host conda libraries (e.g. libstdc++, libtinfo)
+# from breaking system tools like cmake during the build.
+unset LD_LIBRARY_PATH
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ROOT_DIR=$(dirname "$SCRIPT_DIR")
+
+if ! command -v sudo &> /dev/null; then
+  # in docker build sudo isn't avaiable, but its ok
+  echo "Warning: sudo could not be found, you may need to run this script with sudo"
+  function sudo { "$@"; }
+  export -f sudo
+fi
+
+# Use CONDA_ENV_NAME if provided, otherwise default to "hssim"
+CONDA_ENV_NAME=${CONDA_ENV_NAME:-hssim}
+echo "conda environment name is set to: $CONDA_ENV_NAME"
+
+# Create overall workspace
+source ${SCRIPT_DIR}/source_common.sh
+ENV_ROOT=$CONDA_ROOT/envs/$CONDA_ENV_NAME
+SENTINEL_FILE=${WORKSPACE_DIR}/.env_setup_finished_$CONDA_ENV_NAME
+echo "SENTINEL_FILE: $SENTINEL_FILE"
+
+mkdir -p $WORKSPACE_DIR
+
+if [[ ! -f $SENTINEL_FILE ]]; then
+  # Install miniconda
+  if [[ ! -d $CONDA_ROOT ]]; then
+    if command -v conda &> /dev/null; then
+      CONDA_ROOT=$(conda info --base)
+    else
+      mkdir -p $CONDA_ROOT
+      wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O $CONDA_ROOT/miniconda.sh
+      bash $CONDA_ROOT/miniconda.sh -b -u -p $CONDA_ROOT
+      rm $CONDA_ROOT/miniconda.sh
+    fi
+  fi
+
+  # Create the conda environment
+  if [[ ! -d $ENV_ROOT ]]; then
+    accept_conda_tos_if_available
+    install_mamba_if_needed
+    MAMBA_ROOT_PREFIX=$CONDA_ROOT $CONDA_ROOT/bin/mamba create -y -n $CONDA_ENV_NAME python=3.11 -c conda-forge --override-channels
+  fi
+
+  source $CONDA_ROOT/bin/activate $CONDA_ENV_NAME
+
+  # Install ffmpeg for video encoding
+  conda install -c conda-forge -y ffmpeg
+  conda install -c conda-forge -y libiconv
+  conda install -c conda-forge -y libglu
+
+  # Below follows https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/pip_installation.html
+  # Install IsaacSim
+  pip install --upgrade pip
+  pip install -U torch==2.7.0 torchvision==0.22.0 --index-url https://download.pytorch.org/whl/cu128
+
+  # Install dependencies from PyPI first
+  pip install pyperclip
+  # Then install isaacsim from NVIDIA index only
+  pip install "isaacsim[all,extscache]==5.1.0" --extra-index-url https://pypi.nvidia.com
+
+  if [[ ! -d $WORKSPACE_DIR/IsaacLab ]]; then
+    git clone https://github.com/isaac-sim/IsaacLab.git --branch v2.3.0 $WORKSPACE_DIR/IsaacLab
+  fi
+
+  sudo apt install -y cmake build-essential
+  cd $WORKSPACE_DIR/IsaacLab
+  # setuptools 81 removes pkg_resoures, a dep needs that
+  # see https://github.com/isaac-sim/IsaacLab/pull/4585
+  pip install 'setuptools<81'
+  echo 'setuptools<81' > build-constraints.txt
+  export PIP_BUILD_CONSTRAINT="$(realpath build-constraints.txt)"
+  # Fix upstream bug: should use flatdict 4.1.0 (https://github.com/isaac-sim/IsaacLab/issues/4576)
+  sed -i 's/flatdict==4.0.1/flatdict==4.1.0/' source/isaaclab/setup.py
+  # work-around for egl_probe cmake max version issue
+  export CMAKE_POLICY_VERSION_MINIMUM=3.5
+  export OMNI_KIT_ACCEPT_EULA=${OMNI_KIT_ACCEPT_EULA:-1}
+  ./isaaclab.sh --install
+  unset PIP_BUILD_CONSTRAINT
+
+ # Install Holosoma
+  pip install -U pip
+  pip install -e $ROOT_DIR/src/holosoma[unitree,booster]
+  touch $SENTINEL_FILE
+fi

@@ -1,0 +1,10 @@
+recursive-include holosoma *.STL
+recursive-include holosoma *.urdf
+recursive-include holosoma *.xml
+recursive-include holosoma *.yaml
+recursive-include holosoma *.npz
+recursive-include holosoma *.obj
+recursive-include holosoma *.usd
+recursive-include holosoma *.usda
+recursive-include holosoma *.usdc
+recursive-include holosoma *.png

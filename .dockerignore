@@ -1,0 +1,73 @@
+Config
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache
+.coverage
+.mypy_cache
+.ruff_cache
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+logs_eval/
+
+# Documentation
+docs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Model checkpoints and large files
+*.ckpt
+*.pth
+wandb/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local tools
+.agents/
+.codex
+.claude/
+.runtime/
+.logs/
+.jj/
+.omc/
+mise.local.toml
+
+# Local repositories and generated configuration
+GMR/
+holosoma_config.yaml
+wandb-metadata.json
