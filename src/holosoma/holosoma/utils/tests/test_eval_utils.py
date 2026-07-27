@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import logging
 from pathlib import Path
 from unittest import mock
 
@@ -12,7 +13,9 @@ from holosoma.config_types.experiment import ExperimentConfig
 from holosoma.utils.config_utils import CONFIG_NAME
 from holosoma.utils.eval_utils import (
     CheckpointConfig,
+    LoguruLoggingBridge,
     get_all_checkpoint_metadata,
+    init_eval_logging,
     load_checkpoint,
     load_saved_experiment_config,
 )
@@ -30,6 +33,22 @@ def mock_wandb_api(mock_wandb_run: mock.MagicMock) -> mock.MagicMock:
     mock_api = mock.MagicMock()
     mock_api.run.return_value = mock_wandb_run
     return mock_api
+
+
+def test_init_eval_logging_uses_info_for_root_logger() -> None:
+    with (
+        mock.patch("holosoma.utils.eval_utils.logger.remove"),
+        mock.patch("holosoma.utils.eval_utils.logger.add"),
+        mock.patch("holosoma.utils.eval_utils.logging.basicConfig") as basic_config,
+    ):
+        init_eval_logging()
+
+    basic_config.assert_called_once()
+    kwargs = basic_config.call_args.kwargs
+    assert kwargs["level"] == logging.INFO
+    assert kwargs["force"] is True
+    assert len(kwargs["handlers"]) == 1
+    assert isinstance(kwargs["handlers"][0], LoguruLoggingBridge)
 
 
 def test_get_all_checkpoint_metadata_from_wandb(mock_wandb_api: mock.MagicMock) -> None:

@@ -9,6 +9,11 @@ fi
 CONDA_ENV_NAME=${CONDA_ENV_NAME:-hssim}
 echo "conda environment name is set to: $CONDA_ENV_NAME"
 
-source ${SCRIPT_DIR}/source_common.sh
-source ${CONDA_ROOT}/bin/activate $CONDA_ENV_NAME
+source "$SCRIPT_DIR/source_common.sh"
+source "$CONDA_ROOT/bin/activate" "$CONDA_ENV_NAME"
 export OMNI_KIT_ACCEPT_EULA=1
+
+# Prefer the checkout containing this setup script, even when the shared conda
+# environment was previously used by another Holosoma checkout.
+REPO_ROOT=$(realpath "$(dirname "$SCRIPT_DIR")")
+export PYTHONPATH="$REPO_ROOT/src/holosoma${PYTHONPATH:+:$PYTHONPATH}"

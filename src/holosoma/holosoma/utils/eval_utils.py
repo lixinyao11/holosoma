@@ -53,8 +53,7 @@ def init_eval_logging() -> None:
     console_log_level = os.environ.get("LOGURU_LEVEL", "INFO").upper()
     logger.add(sys.stdout, level=console_log_level, colorize=True)
 
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger().addHandler(LoguruLoggingBridge())
+    logging.basicConfig(level=logging.INFO, handlers=[LoguruLoggingBridge()], force=True)
 
 
 @dataclass(frozen=True)

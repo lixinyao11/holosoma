@@ -8,6 +8,21 @@ UNITREE_REPO = "https://github.com/amazon-far/unitree_sdk2"
 BOOSTER_VERSION = "0.1.0"
 BOOSTER_REPO = "https://github.com/amazon-far/booster_robotics_sdk"
 
+DEV_DEPENDENCIES = [
+    "ipdb",
+    "lxml-stubs",
+    "mypy==1.14.1",
+    "notebook",
+    "pre-commit",
+    "pytest",
+    "ruff",
+    "slack-sdk",
+    "types-pynput",
+    "types-python-dateutil",
+    "types-requests",
+    "types-tqdm",
+]
+
 PLATFORM_MAP = {
     "x86_64": "linux_x86_64",
     "aarch64": "linux_aarch64",
@@ -23,6 +38,7 @@ setup(
     extras_require={
         "unitree": [f"unitree_sdk2 @ {unitree_url}"],
         "booster": [f"booster_robotics_sdk @ {booster_url}"],
+        "dev": DEV_DEPENDENCIES,
     },
     # Entry points are declared in pyproject.toml [project.entry-points.*]
 )
