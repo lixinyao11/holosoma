@@ -73,7 +73,7 @@ python src/holosoma/holosoma/train_agent.py \
   exp:g1-29dof-wbt-hybrid-climb \
   logger:wandb \
   --training.num-envs=8192 \
-  --algo.config.num-learning-iterations=20000 \
+  --algo.config.num-learning-iterations=15000 \
   --simulator.config.scene.env-spacing=5.0 \
   --command.setup-terms.motion-command.params.motion-config.hybrid.track-ratio=1.0 \
   --command.setup-terms.motion-command.params.motion-config.motion-dir='holosoma/data/motions/g1_29dof/whole_body_tracking/climbox1' \
@@ -93,7 +93,7 @@ python src/holosoma/holosoma/train_agent.py \
   logger:wandb \
   --training.checkpoint=CLIMB_STAGE1_CHECKPOINT \
   --training.num-envs=8192 \
-  --algo.config.num-learning-iterations=20000 \
+  --algo.config.num-learning-iterations=15000 \
   --algo.config.reset-policy-std-on-resume=True \
   --algo.config.init-noise-std=0.45 \
   --simulator.config.scene.env-spacing=5.0 \
@@ -136,7 +136,7 @@ python src/holosoma/holosoma/train_agent.py \
   logger:wandb \
   --training.checkpoint=OBJECT_STAGE1_CHECKPOINT \
   --training.num-envs=8192 \
-  --algo.config.num-learning-iterations=20000 \
+  --algo.config.num-learning-iterations=15000 \
   --algo.config.reset-policy-std-on-resume=True \
   --algo.config.init-noise-std=0.45 \
   --simulator.config.scene.env-spacing=4.0 \
