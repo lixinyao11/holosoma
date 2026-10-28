@@ -209,9 +209,17 @@ class LeggedRobotLocomotionManager(BaseTask):
     # ------------------------------------------------------------------
     # Checkpoint helpers
 
+    def _get_penalty_curriculum(self) -> Any | None:
+        """The PenaltyCurriculum term, or None if this experiment does not use one."""
+        return self.curriculum_manager.get_term("penalty_curriculum")
+
     def get_checkpoint_state(self) -> dict[str, torch.Tensor | float]:
         state: dict[str, torch.Tensor | float] = {}
         state["average_episode_tracker"] = self._get_average_episode_tracker().state_dict()
+        # The term owns the curriculum state; `reward_penalty_scale` below is only its logged mirror.
+        penalty_curriculum = self._get_penalty_curriculum()
+        if penalty_curriculum is not None:
+            state["penalty_curriculum"] = penalty_curriculum.state_dict()
         if hasattr(self, "reward_penalty_scale"):
             state["reward_penalty_scale"] = float(self.reward_penalty_scale)
         return state
@@ -232,6 +240,16 @@ class LeggedRobotLocomotionManager(BaseTask):
                 self.reward_penalty_scale = float(penalty_state.item())
             else:
                 self.reward_penalty_scale = float(penalty_state)
+
+        # Restore the term itself; its first reset() would otherwise overwrite the mirror set above.
+        # Checkpoints written before the term had state fall back to the legacy scalar.
+        penalty_curriculum = self._get_penalty_curriculum()
+        if penalty_curriculum is not None:
+            pc_state = state.get("penalty_curriculum")
+            if pc_state is None and penalty_state is not None:
+                pc_state = {"current_scale": float(self.reward_penalty_scale)}
+            if pc_state is not None:
+                penalty_curriculum.load_state_dict(cast("dict[str, Any]", pc_state))
 
     def synchronize_curriculum_state(self, *, device: str, world_size: int) -> None:
         if world_size <= 1:
