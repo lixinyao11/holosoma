@@ -104,7 +104,10 @@ class IsaacSim(BaseSimulator):
         else:
             raise RuntimeError("Simulation context already exists. Cannot create a new one.")
 
-        self.sim.set_camera_view([2.0, 0.0, 2.5], [-0.5, 0.0, 0.5])
+        try:
+            self.sim.set_camera_view([2.0, 0.0, 2.5], [-0.5, 0.0, 0.5])
+        except RuntimeError as exc:  # headless without a viewport: there is no camera prim to place
+            logger.warning(f"Skipping set_camera_view: {exc}")
 
         logger.info("IsaacSim initialized.")
         # Log useful information
