@@ -350,6 +350,19 @@ g1_29dof_wbt_observation_hybrid_climb = ObservationManagerCfg(
     },
 )
 
+# Several objects (one per environment group): the actor is unchanged; the critic also gets which object the
+# environment holds.
+critic_obs_hybrid_multi_object_terms = critic_obs_hybrid_object_terms.copy()
+critic_obs_hybrid_multi_object_terms.update(
+    {
+        "object_group": ObsTermCfg(
+            func="holosoma.managers.observation.terms.wbt:object_group_one_hot",
+            scale=1.0,
+            noise=0.0,
+        ),
+    }
+)
+
 g1_29dof_wbt_observation_hybrid_object = ObservationManagerCfg(
     groups={
         "actor_obs": actor_obs_hybrid_object,
@@ -363,9 +376,23 @@ g1_29dof_wbt_observation_hybrid_object = ObservationManagerCfg(
     },
 )
 
+g1_29dof_wbt_observation_hybrid_multi_object = ObservationManagerCfg(
+    groups={
+        "actor_obs": actor_obs_hybrid_object,
+        "critic_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=False,
+            history_length=1,
+            history_augmentation=wbt_object_history_1s,
+            terms=critic_obs_hybrid_multi_object_terms,
+        ),
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_observation",
     "g1_29dof_wbt_observation_hybrid_climb",
+    "g1_29dof_wbt_observation_hybrid_multi_object",
     "g1_29dof_wbt_observation_hybrid_object",
     "g1_29dof_wbt_observation_w_object",
 ]

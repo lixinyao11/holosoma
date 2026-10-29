@@ -203,9 +203,45 @@ g1_29dof_wbt_randomization_hybrid_object = RandomizationManagerCfg(
     },
 )
 
+# Objects from retargeted mocap datasets (Denso: OMOMO boxes / suitcase of 0.4-1.6 kg, friction 1.0 in their MJCF):
+# mass offset and friction around the dataset's values instead of the default +1-4 kg and 0.1-0.6.
+object_state_dr_at_setup_dataset = {
+    **object_state_dr_at_setup,
+    "randomize_object_rigid_body_material_startup": RandomizationTermCfg(
+        func="holosoma.managers.randomization.terms.locomotion:randomize_object_rigid_body_material_startup",
+        params={
+            "static_friction_range": [0.5, 1.0],
+            "dynamic_friction_range": [0.5, 1.0],
+            "restitution_range": [0.0, 1.0],
+            "enabled": True,
+        },
+    ),
+    "randomize_object_rigid_body_mass_startup": RandomizationTermCfg(
+        func="holosoma.managers.randomization.terms.locomotion:randomize_object_rigid_body_mass_startup",
+        params={
+            "mass_distribution_params": [0.0, 1.0],
+            "enabled": True,
+        },
+    ),
+}
+
+g1_29dof_wbt_randomization_hybrid_multi_object = RandomizationManagerCfg(
+    setup_terms={
+        **base_setup_terms_hybrid,
+        **object_state_dr_at_setup_dataset,
+    },
+    reset_terms={
+        **base_reset_terms,
+    },
+    step_terms={
+        **base_step_terms,
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_randomization",
     "g1_29dof_wbt_randomization_hybrid",
+    "g1_29dof_wbt_randomization_hybrid_multi_object",
     "g1_29dof_wbt_randomization_hybrid_object",
     "g1_29dof_wbt_randomization_w_object",
 ]

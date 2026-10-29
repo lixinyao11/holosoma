@@ -393,8 +393,12 @@ class IsaacSim(BaseSimulator):
             self._height_scanner = RayCaster(height_scanner_config)
             self.scene.sensors["height_scanner"] = self._height_scanner
 
-        # clone, filter, and replicate
-        self.scene.clone_environments(copy_from_source=False)
+        # clone, filter, and replicate. Per-environment object assets (object_urdf_paths) need environments that are
+        # copies of env_0: an environment inheriting env_0 would compose env_0's object asset into its own.
+        multi_object = bool(self.robot_config.object.object_urdf_paths)
+        if multi_object and self.simulator_config.scene.replicate_physics:
+            raise ValueError("robot.object.object_urdf_paths requires scene.replicate_physics=False.")
+        self.scene.clone_environments(copy_from_source=multi_object)
 
         if hasattr(self.simulator_config.scene, "usd_file"):
             # Activate collisions with the entire scene
@@ -403,16 +407,17 @@ class IsaacSim(BaseSimulator):
         self.scene.filter_collisions(global_prim_paths=global_collision_prims)
 
         # add objects if object is provided
-        if self.robot_config.object.object_urdf_path:
-            # Resolve the object asset urdf path using importlib.resources
-            object_asset_urdf_path = resolve_data_file_path(self.robot_config.object.object_urdf_path)
+        object_urdf_paths = self.robot_config.object.object_urdf_paths or (
+            [self.robot_config.object.object_urdf_path] if self.robot_config.object.object_urdf_path else []
+        )
+        if object_urdf_paths:
             object_name = "object"  # hardcoded object name
-            object_cfg = RigidObjectCfg(
-                prim_path=f"/World/envs/env_.*/Object",
-                spawn=sim_utils.UrdfFileCfg(
+            # one spawn config per URDF; several are spawned one per environment (environment e: URDF e % N)
+            object_spawns = [
+                sim_utils.UrdfFileCfg(
                     fix_base=False,
                     replace_cylinders_with_capsules=True,
-                    asset_path=object_asset_urdf_path,
+                    asset_path=resolve_data_file_path(path),
                     activate_contact_sensors=True,
                     rigid_props=sim_utils.RigidBodyPropertiesCfg(
                         disable_gravity=False,
@@ -431,7 +436,14 @@ class IsaacSim(BaseSimulator):
                     joint_drive=sim_utils.UrdfConverterCfg.JointDriveCfg(
                         gains=sim_utils.UrdfConverterCfg.JointDriveCfg.PDGainsCfg(stiffness=0, damping=0)
                     ),
-                ),
+                )
+                for path in object_urdf_paths
+            ]
+            object_cfg = RigidObjectCfg(
+                prim_path=f"/World/envs/env_.*/Object",
+                spawn=object_spawns[0]
+                if len(object_spawns) == 1
+                else sim_utils.MultiAssetSpawnerCfg(assets_cfg=object_spawns, random_choice=False),
                 init_state=RigidObjectCfg.InitialStateCfg(
                     pos=(0.0, 0.0, 0.5),
                 ),

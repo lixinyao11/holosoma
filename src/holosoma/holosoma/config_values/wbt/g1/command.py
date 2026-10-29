@@ -229,14 +229,24 @@ g1_29dof_wbt_command_hybrid_climb = _hybrid_command(hybrid_climb_motion_config)
 
 g1_29dof_wbt_command_hybrid_object = _hybrid_command(hybrid_object_motion_config)
 
+# Several objects: entry i of the comma-separated motion_dir holds the clips of robot.object.object_urdf_paths[i].
+hybrid_multi_object_motion_config = replace(
+    hybrid_object_motion_config,
+    motion_file="",
+    motion_dir_object_groups=True,
+)
+g1_29dof_wbt_command_hybrid_multi_object = _hybrid_command(hybrid_multi_object_motion_config)
+
 __all__ = [
     "g1_29dof_wbt_command",
     "g1_29dof_wbt_command_climb",
     "g1_29dof_wbt_command_hybrid_climb",
+    "g1_29dof_wbt_command_hybrid_multi_object",
     "g1_29dof_wbt_command_hybrid_object",
     "g1_29dof_wbt_command_w_object",
     "hybrid_climb_cfg",
     "hybrid_climb_motion_config",
+    "hybrid_multi_object_motion_config",
     "hybrid_object_cfg",
     "hybrid_object_motion_config",
     "motion_config_climb",

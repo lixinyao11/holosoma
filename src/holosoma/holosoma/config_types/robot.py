@@ -74,6 +74,9 @@ class RobotForceControlConfig:
 @dataclass(frozen=True)
 class ObjectConfig:
     object_urdf_path: str | None = None
+    object_urdf_paths: list[str] | None = None
+    """One URDF per environment group instead of ``object_urdf_path`` (IsaacSim only): environment e spawns
+    ``object_urdf_paths[e % len(object_urdf_paths)]``. Requires ``scene.replicate_physics = False``."""
 
 
 @dataclass(frozen=True)

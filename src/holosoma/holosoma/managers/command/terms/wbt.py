@@ -357,25 +357,30 @@ class MultiMotionLoader:
         robot_body_names: list[str],
         robot_joint_names: list[str],
         device: str = "cpu",
+        object_groups: bool = False,
     ):
         # Support comma-separated directories for combining multiple datasets
         dirs = [d.strip() for d in motion_dir.split(",")]
         motion_files = []
-        for d in dirs:
+        file_groups = []  # index of the directory each file came from (its object group)
+        for group, d in enumerate(dirs):
             expanded = resolve_data_file_path(os.path.expanduser(d))
             path = Path(expanded)
             files = sorted(str(p) for p in path.glob("*.npz"))
             logger.info(f"MultiMotionLoader: found {len(files)} .npz files in {expanded}")
             motion_files.extend(files)
+            file_groups.extend([group] * len(files))
         assert len(motion_files) > 0, f"No .npz files found in {motion_dir}"
         logger.info(f"MultiMotionLoader: loading {len(motion_files)} total motion files")
 
         loaders = []
+        groups = []
         skipped = 0
-        for mf in motion_files:
+        for mf, group in zip(motion_files, file_groups):
             try:
                 loader = MotionLoader(mf, robot_body_names, robot_joint_names, device=device)
                 loaders.append(loader)
+                groups.append(group)
             except (KeyError, AssertionError, ValueError) as e:  # noqa: PERF203
                 # Skip files with incompatible format (e.g., missing body_names, wrong body count)
                 skipped += 1
@@ -391,6 +396,10 @@ class MultiMotionLoader:
         self._motion_start_idx = torch.cat([torch.tensor([0], dtype=torch.long, device=device), cumulative[:-1]])
         self._motion_end_idx = cumulative
         self._num_motions = len(loaders)
+        # Object group of each motion (all 0 unless object_groups); -1 marks added transition segments.
+        self.num_groups = len(dirs) if object_groups else 1
+        self._motion_group = torch.tensor(groups if object_groups else [0] * len(loaders), dtype=torch.long,
+                                          device=device)
 
         # Concatenate all motion data. Body tensors are normalized to the simulator robot body subset first:
         # object-reference clips may include an extra object body such as largebox_link in body_* arrays.
@@ -448,6 +457,10 @@ class MultiMotionLoader:
     @property
     def motion_end_idx(self) -> torch.Tensor:
         return self._motion_end_idx
+
+    @property
+    def motion_group(self) -> torch.Tensor:
+        return self._motion_group
 
     @property
     def joint_pos(self) -> torch.Tensor:
@@ -528,6 +541,7 @@ class MultiMotionLoader:
             self._motion_end_idx = torch.cat(
                 [torch.tensor([added_frames], dtype=torch.long, device=dev), self._motion_end_idx]
             )
+            self._motion_group = torch.cat([torch.tensor([-1], dtype=torch.long, device=dev), self._motion_group])
         else:
             old_total = self.time_step_total
             dev = self._motion_start_idx.device
@@ -537,6 +551,7 @@ class MultiMotionLoader:
             self._motion_end_idx = torch.cat(
                 [self._motion_end_idx, torch.tensor([old_total + added_frames], dtype=torch.long, device=dev)]
             )
+            self._motion_group = torch.cat([self._motion_group, torch.tensor([-1], dtype=torch.long, device=dev)])
         self.time_step_total = self._joint_pos.shape[0]
         self._num_motions = len(self._motion_start_idx)
         return self
@@ -1224,6 +1239,9 @@ class MotionCommand(CommandTermBase):
                 "Object is only supported in IsaacSim"
             )
 
+        # 3.1 object groups: environment e holds object asset e % num_groups and only samples that object's clips
+        self._setup_object_groups()
+
         # 4. get the adaptive timesteps sampler
         if self.motion_cfg.use_adaptive_timesteps_sampler:
             adaptive_cfg = self.motion_cfg.adaptive_timestep_sampler
@@ -1268,6 +1286,7 @@ class MotionCommand(CommandTermBase):
                 robot_body_names_alias,
                 robot_joint_names,
                 device=self.device,
+                object_groups=self.motion_cfg.motion_dir_object_groups,
             )
         return MotionLoader(
             self.motion_cfg.motion_file,
@@ -2089,11 +2108,43 @@ class MotionCommand(CommandTermBase):
         )
 
     def _adaptive_sampler_motion_pool_ids(self, env_ids: torch.Tensor) -> torch.Tensor:
+        if self.object_groups:  # one pool per object group
+            return self.env_object_group[env_ids]
         return torch.zeros(env_ids.numel(), dtype=torch.long, device=self.device)
 
     def _adaptive_sampler_motion_pool(self, pool_id: int) -> torch.Tensor:
-        del pool_id
+        if self.object_groups:
+            return self._group_motion_ids[pool_id]
         return torch.arange(self.motion.num_motions, dtype=torch.long, device=self.device)
+
+    def _setup_object_groups(self) -> None:
+        """Object groups (``motion_dir_object_groups``): environment e holds object asset e % N (the scene spawns
+        ``object_urdf_paths[e % N]``) and samples only the clips of motion_dir entry e % N."""
+        self.object_groups = bool(getattr(self.motion_cfg, "motion_dir_object_groups", False))
+        self.num_object_groups = self.motion.num_groups if self.object_groups else 1
+        self.env_object_group = torch.arange(self.num_envs, device=self.device) % self.num_object_groups
+        if not self.object_groups:
+            return
+        if not self.motion.has_object:
+            raise ValueError("motion_dir_object_groups needs motions with object data")
+        groups = self.motion.motion_group
+        self._group_motion_ids = [torch.where(groups == g)[0] for g in range(self.num_object_groups)]
+        if any(ids.numel() == 0 for ids in self._group_motion_ids):
+            raise ValueError("motion_dir_object_groups: every motion_dir entry needs at least one clip")
+        logger.info(
+            f"MotionCommand: {self.num_object_groups} object groups, motions per group "
+            f"{[ids.numel() for ids in self._group_motion_ids]}"
+        )
+        if self._env.simulator.get_simulator_type() == SimulatorType.ISAACSIM:
+            # The scene spawns asset e % N in environment e: each group should hold exactly one asset, told apart by
+            # its centre of mass (masses are randomized at startup, the centre of mass is not).
+            coms = self._env.simulator.scene.rigid_objects[self.object_name].root_physx_view.get_coms()
+            coms = coms.reshape(self.num_envs, -1)[:, :3].to(self.device)
+            per_group = [
+                sorted({tuple(round(float(c), 3) for c in com) for com in coms[self.env_object_group == g]})
+                for g in range(self.num_object_groups)
+            ]
+            logger.info(f"MotionCommand: object centre of mass per group {per_group}")
 
     def _adaptive_sampler_candidate_motion_ids_by_group(self) -> dict[int, torch.Tensor]:
         all_motion_ids = self._adaptive_sampler_motion_pool(0)
@@ -2416,6 +2467,14 @@ class MotionCommand(CommandTermBase):
         return torch.full((env_ids.numel(),), prob, dtype=torch.float32, device=self.device)
 
     def _sample_motion_ids_for_reset(self, env_ids: torch.Tensor) -> None:
+        if self.object_groups:
+            env_groups = self.env_object_group[env_ids]
+            motion_ids = torch.empty(env_ids.numel(), dtype=torch.long, device=self.device)
+            for g, ids in enumerate(self._group_motion_ids):
+                sel = env_groups == g
+                motion_ids[sel] = ids[torch.randint(0, ids.numel(), (int(sel.sum()),), device=self.device)]
+            self.motion_ids[env_ids] = motion_ids
+            return
         self.motion_ids[env_ids] = torch.randint(0, self.motion.num_motions, (env_ids.numel(),), device=self.device)
 
     def _noise_vector_3d(self, values: list[float], *, field_name: str) -> torch.Tensor:

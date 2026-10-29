@@ -219,6 +219,29 @@ g1_29dof_wbt_hybrid_object = replace(
     nightly=None,
 )
 
+# Several objects at once: one URDF and one directory of clips per object, environment e holds object e % N and
+# samples only that object's clips. Set both on the CLI, in the same order:
+#   --command.setup-terms.motion-command.params.motion-config.motion-dir=<dir_0>,<dir_1>,...
+#   --robot.object.object-urdf-paths "['<urdf_0>', '<urdf_1>', ...]"
+g1_29dof_wbt_hybrid_multi_object = replace(
+    g1_29dof_wbt_hybrid_object,
+    training=replace(g1_29dof_wbt_hybrid_object.training, name="g1_29dof_wbt_hybrid_multi_object"),
+    command=command.g1_29dof_wbt_command_hybrid_multi_object,
+    observation=observation.g1_29dof_wbt_observation_hybrid_multi_object,
+    randomization=randomization.g1_29dof_wbt_randomization_hybrid_multi_object,
+    robot=replace(
+        g1_29dof_wbt_hybrid_object.robot,
+        object=replace(g1_29dof_wbt_hybrid_object.robot.object, object_urdf_path=None, object_urdf_paths=[]),
+    ),
+    simulator=replace(
+        g1_29dof_wbt_hybrid_object.simulator,
+        config=replace(
+            g1_29dof_wbt_hybrid_object.simulator.config,
+            scene=replace(g1_29dof_wbt_hybrid_object.simulator.config.scene, replicate_physics=False),
+        ),
+    ),
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -249,6 +272,7 @@ __all__ = [
     "g1_29dof_wbt_fast_sac",
     "g1_29dof_wbt_fast_sac_w_object",
     "g1_29dof_wbt_hybrid_climb",
+    "g1_29dof_wbt_hybrid_multi_object",
     "g1_29dof_wbt_hybrid_object",
     "g1_29dof_wbt_w_object",
 ]

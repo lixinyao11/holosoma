@@ -6,6 +6,7 @@ from holosoma.config_values.wbt.g1.command import (
     g1_29dof_wbt_command,
     g1_29dof_wbt_command_climb,
     g1_29dof_wbt_command_hybrid_climb,
+    g1_29dof_wbt_command_hybrid_multi_object,
     g1_29dof_wbt_command_hybrid_object,
     g1_29dof_wbt_command_w_object,
 )
@@ -20,5 +21,6 @@ DEFAULTS = {
     "g1_29dof_wbt_climb": g1_29dof_wbt_command_climb,
     "g1_29dof_wbt_hybrid_climb": g1_29dof_wbt_command_hybrid_climb,
     "g1_29dof_wbt_hybrid_object": g1_29dof_wbt_command_hybrid_object,
+    "g1_29dof_wbt_hybrid_multi_object": g1_29dof_wbt_command_hybrid_multi_object,
     "g1_29dof_wbt_w_object": g1_29dof_wbt_command_w_object,
 }

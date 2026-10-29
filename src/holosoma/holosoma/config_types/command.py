@@ -304,6 +304,11 @@ class MotionConfig:
     """Directory (or comma-separated directories) of .npz motion files.
     When non-empty, takes precedence over motion_file."""
 
+    motion_dir_object_groups: bool = False
+    """Treat each comma-separated entry of ``motion_dir`` as the clips of one object: entry i goes with
+    ``robot.object.object_urdf_paths[i]`` (environment e holds object ``e % N``), and each environment only samples
+    clips of its own object."""
+
     load_fixed_scene_from_motion: bool = False
     """Whether to load scene/object geometry metadata from motion_file before simulator creation.
 
