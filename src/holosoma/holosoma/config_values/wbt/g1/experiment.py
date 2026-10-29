@@ -176,6 +176,12 @@ g1_29dof_wbt_w_multi_object = replace(
     scene=scene.g1_29dof_wbt_multi_object_scene,
 )
 
+# Same, with an actor that sees the object, the reference object and the reference root.
+g1_29dof_wbt_w_multi_object_state = replace(
+    g1_29dof_wbt_w_multi_object,
+    observation=observation.g1_29dof_wbt_observation_w_multi_object_state,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -195,6 +201,7 @@ __all__ = [
     "g1_29dof_wbt_fast_sac",
     "g1_29dof_wbt_fast_sac_w_object",
     "g1_29dof_wbt_w_multi_object",
+    "g1_29dof_wbt_w_multi_object_state",
     "g1_29dof_wbt_w_object",
 ]
 

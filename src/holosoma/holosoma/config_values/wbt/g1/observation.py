@@ -125,6 +125,26 @@ critic_obs_w_multi_object_terms.update(
     }
 )
 
+# Actor that sees where the object and the reference are: the blind actor above cannot correct its drift away from
+# the reference (~15 cm in 0.4 s on the Denso OMOMO clips), and with an object that drift alone ends the episode.
+actor_obs_w_object_state = ObsGroupCfg(
+    concatenate=True,
+    enable_noise=True,
+    history_length=1,
+    terms={
+        **actor_obs_shared.terms,
+        "motion_ref_pos_b": ObsTermCfg(
+            func="holosoma.managers.observation.terms.wbt:motion_ref_pos_b",
+            scale=1.0,
+            noise=0.0,
+        ),
+        **{
+            name: ObsTermCfg(func=f"holosoma.managers.observation.terms.wbt:{name}", scale=1.0, noise=0.0)
+            for name in ["obj_pos_b", "obj_ori_b", "obj_lin_vel_b", "obj_ref_pos_b", "obj_ref_ori_b"]
+        },
+    },
+)
+
 g1_29dof_wbt_observation = ObservationManagerCfg(
     groups={
         "actor_obs": actor_obs_shared,
@@ -163,8 +183,23 @@ g1_29dof_wbt_observation_w_multi_object = ObservationManagerCfg(
     },
 )
 
+# Several objects, with an actor that sees the object, the reference object and the reference root (all in the
+# robot's anchor frame).
+g1_29dof_wbt_observation_w_multi_object_state = ObservationManagerCfg(
+    groups={
+        "actor_obs": actor_obs_w_object_state,
+        "critic_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=False,
+            history_length=1,
+            terms=critic_obs_w_multi_object_terms,
+        ),
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_observation",
     "g1_29dof_wbt_observation_w_multi_object",
+    "g1_29dof_wbt_observation_w_multi_object_state",
     "g1_29dof_wbt_observation_w_object",
 ]
