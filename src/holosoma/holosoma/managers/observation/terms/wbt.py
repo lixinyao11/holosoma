@@ -186,6 +186,12 @@ def robot_body_ori_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     return mat[..., :2].reshape(mat.shape[0], -1)
 
 
+def object_group_one_hot(env: WholeBodyTrackingManager) -> torch.Tensor:
+    """One-hot object group of each environment (``motion_dir_object_groups``); a constant 1 without groups."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    return torch.nn.functional.one_hot(motion_command.env_object_group, motion_command.num_object_groups).float()
+
+
 def obj_pos_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     motion_command = _get_motion_command_and_assert_type(env)
     pos, _ = subtract_frame_transforms(

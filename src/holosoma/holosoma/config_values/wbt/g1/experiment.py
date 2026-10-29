@@ -164,6 +164,18 @@ g1_29dof_wbt_w_object = replace(
     scene=scene.g1_29dof_wbt_object_scene,
 )
 
+# Several objects at once: one asset and one directory of clips per object, environment e holds object e % N
+# and tracks only that object's clips. Set the clips and URDFs on the CLI, in the same order:
+#   --command.setup-terms.motion-command.params.motion-config.motion-dir=<dir_0>,<dir_1>,...
+#   --scene.rigid-objects.object.urdf-files <urdf_0> <urdf_1> ...
+g1_29dof_wbt_w_multi_object = replace(
+    g1_29dof_wbt_w_object,
+    command=command.g1_29dof_wbt_command_w_multi_object,
+    observation=observation.g1_29dof_wbt_observation_w_multi_object,
+    randomization=randomization.g1_29dof_wbt_randomization_w_multi_object,
+    scene=scene.g1_29dof_wbt_multi_object_scene,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -182,6 +194,7 @@ __all__ = [
     "g1_29dof_wbt",
     "g1_29dof_wbt_fast_sac",
     "g1_29dof_wbt_fast_sac_w_object",
+    "g1_29dof_wbt_w_multi_object",
     "g1_29dof_wbt_w_object",
 ]
 

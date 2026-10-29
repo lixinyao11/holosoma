@@ -303,6 +303,11 @@ class RigidObjectConfig:
     usd_file: str | None = None
     xml_file: str | None = None
 
+    urdf_files: list[str] | None = None
+    """One URDF per environment group instead of a single asset (IsaacSim only): environment e spawns
+    ``urdf_files[e % len(urdf_files)]``. Requires ``SceneConfig.replicate_physics = False``; replaces the
+    tri-format fields above."""
+
     asset_root: str | None = None
     """Optional per-asset root; falls back to SceneConfig.asset_root when None."""
 

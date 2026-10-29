@@ -114,6 +114,17 @@ critic_obs_w_object_terms.update(
     }
 )
 
+critic_obs_w_multi_object_terms = critic_obs_w_object_terms.copy()
+critic_obs_w_multi_object_terms.update(
+    {
+        "object_group": ObsTermCfg(
+            func="holosoma.managers.observation.terms.wbt:object_group_one_hot",
+            scale=1.0,
+            noise=0.0,
+        ),
+    }
+)
+
 g1_29dof_wbt_observation = ObservationManagerCfg(
     groups={
         "actor_obs": actor_obs_shared,
@@ -138,4 +149,22 @@ g1_29dof_wbt_observation_w_object = ObservationManagerCfg(
     },
 )
 
-__all__ = ["g1_29dof_wbt_observation", "g1_29dof_wbt_observation_w_object"]
+# Several objects (one per environment group): the actor stays blind to the object as with one object; the critic
+# also gets which object the environment holds.
+g1_29dof_wbt_observation_w_multi_object = ObservationManagerCfg(
+    groups={
+        "actor_obs": actor_obs_shared,
+        "critic_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=False,
+            history_length=1,
+            terms=critic_obs_w_multi_object_terms,
+        ),
+    },
+)
+
+__all__ = [
+    "g1_29dof_wbt_observation",
+    "g1_29dof_wbt_observation_w_multi_object",
+    "g1_29dof_wbt_observation_w_object",
+]

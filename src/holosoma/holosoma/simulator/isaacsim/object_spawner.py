@@ -401,6 +401,8 @@ def build_standalone_rigid_object(
     body at the root. URDF has no sub-prim concept, so it always references the whole converted
     asset.
     """
+    if obj.urdf_files is not None:
+        return build_multi_urdf_rigid_object(name, obj, scene_asset_root)
     fmt, asset_rel = select_asset_format(obj, supported_formats)
     resolved = resolve_asset_path(asset_rel, obj.asset_root or scene_asset_root)
     source_prim_path = resolve_asset_root(resolved, name) if fmt == "usd" else None
@@ -414,6 +416,33 @@ def build_standalone_rigid_object(
         physics=obj.physics,
         source_prim_path=source_prim_path,
     )
+
+
+def build_multi_urdf_rigid_object(name: str, obj: RigidObjectConfig, scene_asset_root: str | None) -> RigidObject:
+    """One ``RigidObject`` whose asset differs per environment: environment e spawns ``obj.urdf_files[e % N]``
+    (IsaacLab's multi-asset spawner without random choice). Each URDF keeps its own mass and collision geometry;
+    the shared rigid / collision props and material from ``obj.physics`` apply to all of them."""
+    if obj.urdf_file or obj.usd_file or obj.xml_file:
+        raise ValueError(f"Rigid object '{name}': set either urdf_files or one of urdf_file / usd_file / xml_file")
+    if not obj.urdf_files:
+        raise ValueError(f"Rigid object '{name}': urdf_files is empty (--scene.rigid-objects.{name}.urdf-files ...)")
+    assets = [
+        select_spawn_cfg(
+            "urdf",
+            resolve_asset_path(path, obj.asset_root or scene_asset_root),
+            fixed=obj.fixed,
+            physics=obj.physics,
+            source_prim_path=None,
+        )
+        for path in obj.urdf_files
+    ]
+    cfg = RigidObjectCfg(
+        prim_path=f"/World/envs/env_.*/{name}",
+        spawn=sim_utils.MultiAssetSpawnerCfg(assets_cfg=assets, random_choice=False),
+        init_state=RigidObjectCfg.InitialStateCfg(pos=tuple(obj.position), rot=tuple(obj.orientation)),
+    )
+    logger.info(f"Rigid object '{name}': {len(assets)} assets, environment e uses asset e % {len(assets)}")
+    return RigidObject(cfg)
 
 
 def expand_scene_file(

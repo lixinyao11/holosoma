@@ -99,6 +99,11 @@ class MotionConfig:
     """Directory or glob (or a comma-separated mix) of .npz motion files.
     When non-empty, takes precedence over motion_file."""
 
+    motion_dir_object_groups: bool = False
+    """Treat each comma-separated entry of ``motion_dir`` as the clips of one object: entry i goes with asset i of the
+    scene object's ``urdf_files`` (environment e holds asset ``e % len(urdf_files)``), and each environment only
+    samples clips of its own object."""
+
     # motion sampling related
     use_adaptive_timesteps_sampler: bool = False
     """During training, whether to prioritize training on motion segments where the robot fails often."""

@@ -64,6 +64,12 @@ g1_29dof_wbt_command = CommandManagerCfg(
     },
 )
 
+motion_config_w_multi_object = replace(
+    motion_config_w_object,
+    motion_file="",
+    motion_dir_object_groups=True,
+)
+
 g1_29dof_wbt_command_w_object = replace(
     g1_29dof_wbt_command,
     setup_terms={
@@ -76,7 +82,20 @@ g1_29dof_wbt_command_w_object = replace(
     },
 )
 
+g1_29dof_wbt_command_w_multi_object = replace(
+    g1_29dof_wbt_command,
+    setup_terms={
+        "motion_command": CommandTermCfg(
+            func="holosoma.managers.command.terms.wbt:MotionCommand",
+            params={
+                "motion_config": motion_config_w_multi_object,
+            },
+        )
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_command",
+    "g1_29dof_wbt_command_w_multi_object",
     "g1_29dof_wbt_command_w_object",
 ]

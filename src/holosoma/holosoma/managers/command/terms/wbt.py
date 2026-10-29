@@ -243,24 +243,29 @@ class MultiMotionLoader:
         robot_body_names: list[str],
         robot_joint_names: list[str],
         device: str = "cpu",
+        object_groups: bool = False,
     ):
         # Support comma-separated directories for combining multiple datasets
         dirs = [directory.strip() for directory in motion_dir.split(",") if directory.strip()]
         motion_files = []
-        for d in dirs:
+        file_groups = []  # index of the directory each file came from (its object group)
+        for group, d in enumerate(dirs):
             pattern = d if has_magic(d) else f"{d.rstrip('/')}/*.npz"
-            files = list(resolve_paths(pattern))
+            files = sorted(resolve_paths(pattern))
             logger.info(f"MultiMotionLoader: found {len(files)} .npz files in {d}")
             motion_files.extend(files)
+            file_groups.extend([group] * len(files))
         assert len(motion_files) > 0, f"No .npz files found in {motion_dir}"
         logger.info(f"MultiMotionLoader: loading {len(motion_files)} total motion files")
 
         loaders = []
+        groups = []
         skipped = 0
-        for mf in motion_files:
+        for mf, group in zip(motion_files, file_groups):
             try:
                 loader = MotionLoader(mf, robot_body_names, robot_joint_names, device=device)
                 loaders.append(loader)
+                groups.append(group)
             except (KeyError, AssertionError, ValueError) as e:  # noqa: PERF203
                 # Skip files with incompatible format (e.g., missing body_names, wrong body count)
                 skipped += 1
@@ -276,6 +281,10 @@ class MultiMotionLoader:
         self._motion_start_idx = torch.cat([torch.tensor([0], dtype=torch.long, device=device), cumulative[:-1]])
         self._motion_end_idx = cumulative
         self._num_motions = len(loaders)
+        # Object group of each motion (all 0 unless object_groups); -1 marks added transition segments.
+        self.num_groups = len(dirs) if object_groups else 1
+        self._motion_group = torch.tensor(groups if object_groups else [0] * len(loaders), dtype=torch.long,
+                                          device=device)
 
         # Concatenate all motion data
         self._joint_pos = torch.cat([ld._joint_pos for ld in loaders], dim=0)
@@ -321,6 +330,10 @@ class MultiMotionLoader:
     @property
     def motion_start_idx(self) -> torch.Tensor:
         return self._motion_start_idx
+
+    @property
+    def motion_group(self) -> torch.Tensor:
+        return self._motion_group
 
     @property
     def motion_end_idx(self) -> torch.Tensor:
@@ -400,6 +413,7 @@ class MultiMotionLoader:
             self._motion_end_idx = torch.cat(
                 [torch.tensor([added_frames], dtype=torch.long, device=dev), self._motion_end_idx]
             )
+            self._motion_group = torch.cat([torch.tensor([-1], dtype=torch.long, device=dev), self._motion_group])
         else:
             old_total = self.time_step_total
             dev = self._motion_start_idx.device
@@ -409,6 +423,7 @@ class MultiMotionLoader:
             self._motion_end_idx = torch.cat(
                 [self._motion_end_idx, torch.tensor([old_total + added_frames], dtype=torch.long, device=dev)]
             )
+            self._motion_group = torch.cat([self._motion_group, torch.tensor([-1], dtype=torch.long, device=dev)])
 
         self.time_step_total = self._joint_pos.shape[0]
         self._num_motions = len(self._motion_start_idx)
@@ -490,12 +505,21 @@ class AdaptiveTimestepsSampler:
         sampling_probabilities = torch.nn.functional.conv1d(sampling_probabilities, self.kernel.view(1, 1, -1)).view(-1)
         return sampling_probabilities / sampling_probabilities.sum()
 
-    def sample(self, num_samples: int) -> torch.Tensor:
-        sampled_bins = torch.multinomial(self.sampling_probabilities, num_samples, replacement=True)
+    def bin_mask(self, start: int, end: int) -> torch.Tensor:
+        """Bins overlapping global frames [start, end)."""
+        lo = (torch.arange(self.num_bins, device=self.device) * self.motion_time_step_total) // self.num_bins
+        hi = ((torch.arange(self.num_bins, device=self.device) + 1) * self.motion_time_step_total) // self.num_bins
+        return (lo < end) & (hi > start)
+
+    def sample(self, num_samples: int, bin_mask: torch.Tensor | None = None) -> torch.Tensor:
+        probabilities = self.sampling_probabilities
+        if bin_mask is not None:
+            probabilities = probabilities * bin_mask
+        sampled_bins = torch.multinomial(probabilities, num_samples, replacement=True)
         # inside of each bin, randomly sample a time step, ignoring the borders
         return (sampled_bins + torch.rand(num_samples, device=self.device)) / self.num_bins
 
-    def sample_global_time_steps(self, num_samples: int) -> torch.Tensor:
+    def sample_global_time_steps(self, num_samples: int, bin_mask: torch.Tensor | None = None) -> torch.Tensor:
         """Sample absolute (global) frame indices in [0, motion_time_step_total).
 
         The bins live in the GLOBAL concatenated-motion frame space, so a sampled
@@ -504,7 +528,7 @@ class AdaptiveTimestepsSampler:
         from which clip's [start, end) interval the returned index falls into, so
         the failure-prioritized location stays attached to the motion it came from.
         """
-        phase = self.sample(num_samples)
+        phase = self.sample(num_samples, bin_mask)
         global_idx = (phase * self.motion_time_step_total).long()
         return global_idx.clamp_(0, self.motion_time_step_total - 1)
 
@@ -568,6 +592,7 @@ class MotionCommand(CommandTermBase):
                 robot_body_names_alias,
                 robot_joint_names,
                 device=self.device,
+                object_groups=self.motion_cfg.motion_dir_object_groups,
             )
         else:
             self.motion = MotionLoader(
@@ -608,6 +633,40 @@ class MotionCommand(CommandTermBase):
                 self.motion.time_step_total, self.device, int(1 / (self._env.dt))
             )
 
+        # 4.1 object groups: environment e holds object asset e % num_groups and only samples that object's clips
+        self.object_groups = self.motion_cfg.motion_dir_object_groups
+        self.num_object_groups = self.motion.num_groups if self.object_groups else 1
+        self.env_object_group = torch.arange(self.num_envs, device=self.device) % self.num_object_groups
+        if self.object_groups:
+            if not self.motion.has_object:
+                raise ValueError("motion_dir_object_groups needs motions with object data")
+            groups = self.motion.motion_group
+            self._group_motion_ids = [torch.where(groups == g)[0] for g in range(self.num_object_groups)]
+            if any(ids.numel() == 0 for ids in self._group_motion_ids):
+                raise ValueError("motion_dir_object_groups: every motion_dir entry needs at least one clip")
+            self._group_frame_range = [
+                (int(self.motion.motion_start_idx[ids].min()), int(self.motion.motion_end_idx[ids].max()))
+                for ids in self._group_motion_ids
+            ]
+            if self.motion_cfg.use_adaptive_timesteps_sampler:
+                self._group_bin_mask = [
+                    self.adaptive_timesteps_sampler.bin_mask(lo, hi) for lo, hi in self._group_frame_range
+                ]
+            logger.info(
+                f"MotionCommand: {self.num_object_groups} object groups, motions per group "
+                f"{[ids.numel() for ids in self._group_motion_ids]}"
+            )
+            if self._env.simulator.get_simulator_type() == SimulatorType.ISAACSIM:
+                # The scene spawns asset e % N in environment e: each group should hold exactly one asset, told apart
+                # by its centre of mass (masses are randomized at startup, the centre of mass is not).
+                coms = self._env.simulator.scene.rigid_objects[self.object_name].root_physx_view.get_coms()
+                coms = coms.reshape(self.num_envs, -1)[:, :3].to(self.device)
+                per_group = [
+                    sorted({tuple(round(float(c), 3) for c in com) for com in coms[self.env_object_group == g]})
+                    for g in range(self.num_object_groups)
+                ]
+                logger.info(f"MotionCommand: object centre of mass per group {per_group}")
+
         # 5. metrics
         self.metrics: dict[str, torch.Tensor] = {}
 
@@ -643,7 +702,18 @@ class MotionCommand(CommandTermBase):
             # axis, so it must return a global frame index here. The motion id is
             # then derived from that index (NOT chosen independently), keeping the
             # failure-prioritized phase attached to the motion it was recorded on.
-            adaptive_global_idx = self.adaptive_timesteps_sampler.sample_global_time_steps(n)
+            if self.object_groups:
+                adaptive_global_idx = torch.empty(n, dtype=torch.long, device=self.device)
+                env_groups = self.env_object_group[env_ids]
+                for g, (lo, hi) in enumerate(self._group_frame_range):
+                    sel = env_groups == g
+                    if sel.any():
+                        idx = self.adaptive_timesteps_sampler.sample_global_time_steps(
+                            int(sel.sum()), self._group_bin_mask[g]
+                        )
+                        adaptive_global_idx[sel] = idx.clamp(lo, hi - 1)
+            else:
+                adaptive_global_idx = self.adaptive_timesteps_sampler.sample_global_time_steps(n)
             phase = None
         else:
             phase = torch.rand(n, device=self.device)
@@ -667,7 +737,15 @@ class MotionCommand(CommandTermBase):
         else:
             # Uniform path (or eval): randomly assign each env to a motion, sample
             # a phase within that motion's range.
-            self.motion_ids[env_ids] = torch.randint(0, num_motions, (n,), device=self.device)
+            if self.object_groups:
+                env_groups = self.env_object_group[env_ids]
+                motion_ids = torch.empty(n, dtype=torch.long, device=self.device)
+                for g, ids in enumerate(self._group_motion_ids):
+                    sel = env_groups == g
+                    motion_ids[sel] = ids[torch.randint(0, ids.numel(), (int(sel.sum()),), device=self.device)]
+                self.motion_ids[env_ids] = motion_ids
+            else:
+                self.motion_ids[env_ids] = torch.randint(0, num_motions, (n,), device=self.device)
             start_idx = self.motion.motion_start_idx[self.motion_ids[env_ids]]
             end_idx = self.motion.motion_end_idx[self.motion_ids[env_ids]]
             motion_len = end_idx - start_idx

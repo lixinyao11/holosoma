@@ -318,7 +318,9 @@ class IsaacSim(BaseSimulator):
         light_setup.build_lights(self)
 
         # clone, filter, and replicate
-        self.scene.clone_environments(copy_from_source=False)
+        # Per-environment object assets need environments that are copies of env_0, not inheritors.
+        self.scene.clone_environments(copy_from_source=self._has_multi_asset_rigid_objects())
+        self._load_multi_asset_rigid_objects()
 
         self.scene.filter_collisions(global_prim_paths=global_collision_prims)
 
@@ -417,9 +419,28 @@ class IsaacSim(BaseSimulator):
         via object_spawner; the only difference is the spawn cfg.
         """
         for obj_name, obj in scene_config.rigid_objects.items():
+            if obj.urdf_files is not None:
+                continue  # per-environment assets are spawned after cloning (_load_multi_asset_rigid_objects)
             self.scene.rigid_objects[obj_name] = build_standalone_rigid_object(
                 obj_name, obj, self.get_supported_scene_formats(), scene_config.asset_root
             )
+
+    def _has_multi_asset_rigid_objects(self) -> bool:
+        return self.scene_config is not None and any(
+            obj.urdf_files is not None for obj in self.scene_config.rigid_objects.values()
+        )
+
+    def _load_multi_asset_rigid_objects(self) -> None:
+        """Spawn rigid objects with one asset per environment (``urdf_files``). Runs after the environments are
+        cloned as copies of env_0 (``_setup_scene``): an environment cloned by inheriting env_0 would compose
+        env_0's object asset into its own."""
+        if self.scene_config is None:
+            return  # type: ignore[unreachable]
+        for obj_name, obj in self.scene_config.rigid_objects.items():
+            if obj.urdf_files is not None:
+                self.scene.rigid_objects[obj_name] = build_standalone_rigid_object(
+                    obj_name, obj, self.get_supported_scene_formats(), self.scene_config.asset_root
+                )
 
     def setup(self) -> None:
         self.sim_dt = 1.0 / self.simulator_config.sim.fps

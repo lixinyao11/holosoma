@@ -146,7 +146,44 @@ g1_29dof_wbt_randomization_w_object = RandomizationManagerCfg(
     },
 )
 
+# Objects from retargeted mocap datasets (Denso: OMOMO boxes / suitcase of 0.4-1.6 kg, friction 1.0 in their MJCF):
+# mass offset and friction around the dataset's values instead of the default +1-4 kg and 0.1-0.6.
+object_state_dr_at_setup_dataset = {
+    **object_state_dr_at_setup,
+    "randomize_object_rigid_body_material_startup": RandomizationTermCfg(
+        func="holosoma.managers.randomization.terms.objects:randomize_object_rigid_body_material_startup",
+        params={
+            "material": MaterialRandomizationConfig(
+                isaacsim=IsaacSimMaterialDR(
+                    static_friction=[0.5, 1.0], dynamic_friction=[0.5, 1.0], restitution=[0.0, 1.0]
+                ),
+                mujoco=MujocoMaterialDR(sliding_friction=[0.5, 1.0]),
+            ),
+        },
+    ),
+    "randomize_object_rigid_body_mass_startup": RandomizationTermCfg(
+        func="holosoma.managers.randomization.terms.objects:randomize_object_rigid_body_mass_startup",
+        params={
+            "mass_distribution_params": [0.0, 1.0],
+        },
+    ),
+}
+
+g1_29dof_wbt_randomization_w_multi_object = RandomizationManagerCfg(
+    setup_terms={
+        **base_setup_terms,
+        **object_state_dr_at_setup_dataset,
+    },
+    reset_terms={
+        **base_reset_terms,
+    },
+    step_terms={
+        **base_step_terms,
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_randomization",
+    "g1_29dof_wbt_randomization_w_multi_object",
     "g1_29dof_wbt_randomization_w_object",
 ]

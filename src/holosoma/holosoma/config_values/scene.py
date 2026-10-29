@@ -17,7 +17,7 @@ from holosoma.config_types.scene import (
     SceneConfig,
     SceneFileConfig,
 )
-from holosoma.config_values.wbt.g1.scene import g1_29dof_wbt_object_scene
+from holosoma.config_values.wbt.g1.scene import g1_29dof_wbt_multi_object_scene, g1_29dof_wbt_object_scene
 from holosoma.utils.config_registry import ConfigRegistry, deprecated_defaults_alias
 
 SCENE_REGISTRY = ConfigRegistry(SceneConfig, group="holosoma.config.scene")
@@ -66,5 +66,6 @@ object_managers_demo = SceneConfig(
 SCENE_REGISTRY.add("empty", empty)
 SCENE_REGISTRY.add("object-managers-demo", object_managers_demo)
 SCENE_REGISTRY.add("g1_29dof_wbt_object", g1_29dof_wbt_object_scene)
+SCENE_REGISTRY.add("g1_29dof_wbt_multi_object", g1_29dof_wbt_multi_object_scene)
 
 __getattr__ = deprecated_defaults_alias(__name__, SCENE_REGISTRY)
