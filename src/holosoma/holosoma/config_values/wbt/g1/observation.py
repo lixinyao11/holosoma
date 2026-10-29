@@ -363,6 +363,24 @@ critic_obs_hybrid_multi_object_terms.update(
     }
 )
 
+# Several objects, with the reference object poses OBJECT_FUTURE_FRAMES steps ahead (0.02-1 s at 50 Hz) next to the
+# final object goal: with hundreds of clips per object the goal alone does not say which clip (motion) to follow.
+OBJECT_FUTURE_FRAMES = [1, 5, 10, 25, 50]
+
+obj_future_terms = {
+    name: ObsTermCfg(
+        func=f"holosoma.managers.observation.terms.wbt:{name}",
+        scale=1.0,
+        noise=0.0,
+        params={"frames": OBJECT_FUTURE_FRAMES},
+    )
+    for name in ["obj_future_pos_b", "obj_future_ori_b"]
+}
+
+actor_obs_hybrid_object_future = replace(
+    actor_obs_hybrid_object, terms={**actor_obs_hybrid_object_terms, **obj_future_terms}
+)
+
 g1_29dof_wbt_observation_hybrid_object = ObservationManagerCfg(
     groups={
         "actor_obs": actor_obs_hybrid_object,
@@ -389,10 +407,24 @@ g1_29dof_wbt_observation_hybrid_multi_object = ObservationManagerCfg(
     },
 )
 
+g1_29dof_wbt_observation_hybrid_multi_object_future = ObservationManagerCfg(
+    groups={
+        "actor_obs": actor_obs_hybrid_object_future,
+        "critic_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=False,
+            history_length=1,
+            history_augmentation=wbt_object_history_1s,
+            terms={**critic_obs_hybrid_multi_object_terms, **obj_future_terms},
+        ),
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_observation",
     "g1_29dof_wbt_observation_hybrid_climb",
     "g1_29dof_wbt_observation_hybrid_multi_object",
+    "g1_29dof_wbt_observation_hybrid_multi_object_future",
     "g1_29dof_wbt_observation_hybrid_object",
     "g1_29dof_wbt_observation_w_object",
 ]

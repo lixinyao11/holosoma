@@ -363,6 +363,42 @@ def obj_goal_ori_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     return mat[..., :2].reshape(mat.shape[0], -1)
 
 
+def _obj_future_poses_b(env: WholeBodyTrackingManager, frames: list[int]) -> tuple[torch.Tensor, torch.Tensor]:
+    """Reference object poses ``frames`` steps ahead of each environment's time step (held at the clip's last frame),
+    in the goal-conditioning robot frame of ``obj_goal_pos_b``: positions [num_envs, K, 3], quaternions [num_envs, K,
+    4]."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    offsets = torch.as_tensor(frames, dtype=torch.long, device=env.device)
+    last = motion_command.motion.motion_end_idx[motion_command.motion_ids] - 1
+    steps = torch.minimum(motion_command.time_steps[:, None] + offsets[None, :], last[:, None])  # [num_envs, K]
+    pos_w = motion_command.motion.object_pos_w[steps] + env.simulator.scene.env_origins[:, None, :]
+    quat_w = motion_command.motion.object_quat_w[steps]
+    if _object_yaw_only_enabled(motion_command):
+        quat_w = yaw_quat(quat_w, w_last=True).view(quat_w.shape)
+    num_frames = len(frames)
+    pos_b, quat_b = subtract_frame_transforms(
+        motion_command.robot_ref_pos_w[:, None, :].repeat(1, num_frames, 1),
+        _get_goal_conditioning_ref_quat_w(motion_command)[:, None, :].repeat(1, num_frames, 1),
+        pos_w,
+        quat_w,
+    )
+    return pos_b, quat_b
+
+
+def obj_future_pos_b(env: WholeBodyTrackingManager, frames: list[int]) -> torch.Tensor:
+    """Reference object positions ``frames`` steps ahead, in the robot frame (3 values per frame)."""
+    pos_b, _ = _obj_future_poses_b(env, frames)
+    return pos_b.reshape(env.num_envs, -1)
+
+
+def obj_future_ori_b(env: WholeBodyTrackingManager, frames: list[int]) -> torch.Tensor:
+    """Reference object orientations ``frames`` steps ahead, in the robot frame (first two rotation-matrix columns,
+    6 values per frame)."""
+    _, quat_b = _obj_future_poses_b(env, frames)
+    mat = quaternion_to_matrix(quat_b, w_last=True)
+    return mat[..., :2].reshape(env.num_envs, -1)
+
+
 def obj_lin_vel_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     motion_command = _get_motion_command_and_assert_type(env)
     vel_b = quat_rotate_inverse(

@@ -235,6 +235,13 @@ g1_29dof_wbt_hybrid_multi_object = replace(
     ),
 )
 
+# Same, with the reference object poses a few steps ahead next to the object goal (actor and critic).
+g1_29dof_wbt_hybrid_multi_object_future = replace(
+    g1_29dof_wbt_hybrid_multi_object,
+    training=replace(g1_29dof_wbt_hybrid_multi_object.training, name="g1_29dof_wbt_hybrid_multi_object_future"),
+    observation=observation.g1_29dof_wbt_observation_hybrid_multi_object_future,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -266,6 +273,7 @@ __all__ = [
     "g1_29dof_wbt_fast_sac_w_object",
     "g1_29dof_wbt_hybrid_climb",
     "g1_29dof_wbt_hybrid_multi_object",
+    "g1_29dof_wbt_hybrid_multi_object_future",
     "g1_29dof_wbt_hybrid_object",
     "g1_29dof_wbt_w_object",
 ]

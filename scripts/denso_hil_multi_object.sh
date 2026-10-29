@@ -7,11 +7,13 @@
 #       --command.setup-terms.motion-command.params.motion-config.hybrid.track-ratio=1.0 ...
 #
 # DENSO_HOLOSOMA_DATA: dataset root (default ~/Code/Denso/data/holosoma/omomo/umr, from Denso's
-# `scripts/export.py --format holosoma`); OBJECTS: object datasets to use, in order.
+# `scripts/export.py --format holosoma`); OBJECTS: object datasets to use, in order; EXP: experiment preset (default
+# g1-29dof-wbt-hybrid-multi-object; g1-29dof-wbt-hybrid-multi-object-future adds the object poses a few steps ahead).
 set -euo pipefail
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 DATA=${DENSO_HOLOSOMA_DATA:-$HOME/Code/Denso/data/holosoma/omomo/umr}
 OBJECTS=${OBJECTS:-"largebox plasticbox smallbox suitcase"}
+EXP=${EXP:-g1-29dof-wbt-hybrid-multi-object}
 dirs=()
 urdfs=()
 for o in $OBJECTS; do
@@ -20,6 +22,6 @@ for o in $OBJECTS; do
 done
 source "$SCRIPT_DIR/source_isaacsim_setup.sh"    # also puts this checkout's src/holosoma first on PYTHONPATH
 cd "$SCRIPT_DIR/.."                               # holosoma writes logs/ relative to the working directory
-python src/holosoma/holosoma/train_agent.py exp:g1-29dof-wbt-hybrid-multi-object "$@" \
+python src/holosoma/holosoma/train_agent.py "exp:$EXP" "$@" \
   --command.setup-terms.motion-command.params.motion-config.motion-dir="$(IFS=,; echo "${dirs[*]}")" \
   --robot.object.object-urdf-paths "[$(IFS=,; echo "${urdfs[*]}")]"     # Python list literal (holosoma's tyro)
