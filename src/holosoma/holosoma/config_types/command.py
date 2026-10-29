@@ -100,9 +100,9 @@ class MotionConfig:
     When non-empty, takes precedence over motion_file."""
 
     motion_dir_object_groups: bool = False
-    """Treat each comma-separated entry of ``motion_dir`` as the clips of one object: entry i goes with asset i of the
-    scene object's ``urdf_files`` (environment e holds asset ``e % len(urdf_files)``), and each environment only
-    samples clips of its own object."""
+    """Treat each comma-separated entry of ``motion_dir`` as the clips of one object: entry i goes with variant i of
+    the scene object's ``urdf_files``. Environment e tracks variant ``e % N`` (the others stay parked) and only samples
+    clips of that object."""
 
     # motion sampling related
     use_adaptive_timesteps_sampler: bool = False

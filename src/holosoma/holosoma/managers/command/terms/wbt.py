@@ -555,6 +555,12 @@ FAKE_BODY_NAME_ALIASES: dict[str, str] = {
 }
 
 
+# Object variants an environment does not track wait here, relative to their pose at the start of their group's
+# first clip: x + OBJECT_PARK_OFFSET[0], y + OBJECT_PARK_OFFSET[1] + k * OBJECT_PARK_SPACING for variant k.
+OBJECT_PARK_OFFSET = (0.0, 30.0)
+OBJECT_PARK_SPACING = 3.0
+
+
 def get_filtered_body_names(body_list: list[str], pattern: str) -> list[str]:
     return [body_name for body_name in body_list if re.match(pattern, body_name)]
 
@@ -656,16 +662,32 @@ class MotionCommand(CommandTermBase):
                 f"MotionCommand: {self.num_object_groups} object groups, motions per group "
                 f"{[ids.numel() for ids in self._group_motion_ids]}"
             )
+            # Object variants (scene object with urdf_files): every environment holds one rigid object per group,
+            # named <name>_00, <name>_01, ... in group order; environment e tracks variant e % N, the others are
+            # parked at reset (their pose at the start of the group's first clip, moved away from the robot).
+            self.object_names = sorted(self._env.simulator.object_registry.get_names_by_type(ObjectType.INDIVIDUAL))
+            if len(self.object_names) != self.num_object_groups:
+                raise ValueError(
+                    f"motion_dir_object_groups: {self.num_object_groups} motion_dir entries but {len(self.object_names)} "
+                    f"rigid objects {self.object_names} (set the scene object's urdf_files in the same order)"
+                )
+            self.object_name = self.object_names[0]
+            first = torch.stack([self.motion.motion_start_idx[ids[0]] for ids in self._group_motion_ids])
+            self._object_park_pos = self.motion.object_pos_w[first].clone()
+            self._object_park_pos[:, 0] += OBJECT_PARK_OFFSET[0]
+            self._object_park_pos[:, 1] += OBJECT_PARK_OFFSET[1] + OBJECT_PARK_SPACING * torch.arange(
+                self.num_object_groups, device=self.device
+            )
+            self._object_park_quat = self.motion.object_quat_w[first].clone()
             if self._env.simulator.get_simulator_type() == SimulatorType.ISAACSIM:
-                # The scene spawns asset e % N in environment e: each group should hold exactly one asset, told apart
-                # by its centre of mass (masses are randomized at startup, the centre of mass is not).
-                coms = self._env.simulator.scene.rigid_objects[self.object_name].root_physx_view.get_coms()
-                coms = coms.reshape(self.num_envs, -1)[:, :3].to(self.device)
-                per_group = [
-                    sorted({tuple(round(float(c), 3) for c in com) for com in coms[self.env_object_group == g]})
-                    for g in range(self.num_object_groups)
+                # Each variant should be its own asset, told apart by its centre of mass (masses are randomized at
+                # startup, the centre of mass is not).
+                coms = [
+                    tuple(round(float(c), 3) for c in
+                          self._env.simulator.scene.rigid_objects[n].root_physx_view.get_coms()[0, :3])
+                    for n in self.object_names
                 ]
-                logger.info(f"MotionCommand: object centre of mass per group {per_group}")
+                logger.info(f"MotionCommand: object variants {self.object_names}, centres of mass {coms}")
 
         # 5. metrics
         self.metrics: dict[str, torch.Tensor] = {}
@@ -867,7 +889,10 @@ class MotionCommand(CommandTermBase):
                 [target_obj_pos, obj_ori, obj_lin_vel, torch.zeros_like(obj_lin_vel)], dim=-1
             )  # (num_envs, 13): pos(3) + quat(4) + lin_vel(3) + ang_vel(3)
             # 4.3 set the object states in simulator
-            self._env.simulator.set_actor_states([self.object_name], env_ids, object_states)
+            if self.object_groups:
+                self._set_object_variant_states(env_ids, object_states)
+            else:
+                self._env.simulator.set_actor_states([self.object_name], env_ids, object_states)
 
     def step(self) -> None:
         """called in _update_tasks_callback of the environment. (after compute_reward, before compute_observations)"""
@@ -1106,7 +1131,24 @@ class MotionCommand(CommandTermBase):
         object index would be out of bounds. The unified API resolves the object's own
         per-env state on every backend.
         """
+        if self.object_groups:  # the variant each environment tracks
+            states = self._env.simulator.get_actor_states(self.object_names, env_ids=None)
+            states = states.view(len(self.object_names), self.num_envs, 13)
+            return states[self.env_object_group, torch.arange(self.num_envs, device=self.device)]
         return self._env.simulator.get_actor_states([self.object_name], env_ids=None)
+
+    def _set_object_variant_states(self, env_ids: torch.Tensor, object_states: torch.Tensor) -> None:
+        """Object groups: ``object_states`` [len(env_ids), 13] for each environment's own variant; every other variant
+        of these environments is parked (at rest, away from the robot)."""
+        env_groups = self.env_object_group[env_ids]
+        origins = self._env.simulator.scene.env_origins[env_ids]
+        for k, name in enumerate(self.object_names):
+            states = torch.zeros(len(env_ids), 13, device=self.device)
+            states[:, :3] = self._object_park_pos[k] + origins
+            states[:, 3:7] = self._object_park_quat[k]
+            own = env_groups == k
+            states[own] = object_states[own]
+            self._env.simulator.set_actor_states([name], env_ids, states)
 
     @property
     def simulator_object_pos_w(self) -> torch.Tensor:

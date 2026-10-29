@@ -401,8 +401,6 @@ def build_standalone_rigid_object(
     body at the root. URDF has no sub-prim concept, so it always references the whole converted
     asset.
     """
-    if obj.urdf_files is not None:
-        return build_multi_urdf_rigid_object(name, obj, scene_asset_root)
     fmt, asset_rel = select_asset_format(obj, supported_formats)
     resolved = resolve_asset_path(asset_rel, obj.asset_root or scene_asset_root)
     source_prim_path = resolve_asset_root(resolved, name) if fmt == "usd" else None
@@ -418,31 +416,40 @@ def build_standalone_rigid_object(
     )
 
 
-def build_multi_urdf_rigid_object(name: str, obj: RigidObjectConfig, scene_asset_root: str | None) -> RigidObject:
-    """One ``RigidObject`` whose asset differs per environment: environment e spawns ``obj.urdf_files[e % N]``
-    (IsaacLab's multi-asset spawner without random choice). Each URDF keeps its own mass and collision geometry;
-    the shared rigid / collision props and material from ``obj.physics`` apply to all of them."""
+OBJECT_VARIANT_PARK_OFFSET = (0.0, 30.0, 0.0)
+"""Where object variant k waits while unused: obj.position + offset + (0, k * OBJECT_VARIANT_PARK_SPACING, 0)."""
+OBJECT_VARIANT_PARK_SPACING = 3.0
+
+
+def object_variant_names(name: str, obj: RigidObjectConfig) -> list[str]:
+    """Actor names of the variants of a rigid object with ``urdf_files``: ``<name>_00``, ``<name>_01``, ..."""
+    return [f"{name}_{k:02d}" for k in range(len(obj.urdf_files or []))]
+
+
+def build_object_variants(name: str, obj: RigidObjectConfig, scene_asset_root: str | None) -> dict[str, RigidObject]:
+    """One ``RigidObject`` per URDF of ``obj.urdf_files``, present in every environment (so environments stay
+    identical and physics replication applies); a task uses one of them per environment and keeps the others
+    parked (``OBJECT_VARIANT_PARK_OFFSET``). Heterogeneous assets per environment would need
+    ``replicate_physics=False``, which makes simulation ~5x slower."""
     if obj.urdf_file or obj.usd_file or obj.xml_file:
         raise ValueError(f"Rigid object '{name}': set either urdf_files or one of urdf_file / usd_file / xml_file")
     if not obj.urdf_files:
         raise ValueError(f"Rigid object '{name}': urdf_files is empty (--scene.rigid-objects.{name}.urdf-files ...)")
-    assets = [
-        select_spawn_cfg(
+    objects = {}
+    for k, (variant, path) in enumerate(zip(object_variant_names(name, obj), obj.urdf_files)):
+        pos = [p + o for p, o in zip(obj.position, OBJECT_VARIANT_PARK_OFFSET)]
+        pos[1] += k * OBJECT_VARIANT_PARK_SPACING
+        objects[variant] = build_rigid_object(
+            variant,
             "urdf",
             resolve_asset_path(path, obj.asset_root or scene_asset_root),
+            pos,
+            obj.orientation,
             fixed=obj.fixed,
             physics=obj.physics,
-            source_prim_path=None,
         )
-        for path in obj.urdf_files
-    ]
-    cfg = RigidObjectCfg(
-        prim_path=f"/World/envs/env_.*/{name}",
-        spawn=sim_utils.MultiAssetSpawnerCfg(assets_cfg=assets, random_choice=False),
-        init_state=RigidObjectCfg.InitialStateCfg(pos=tuple(obj.position), rot=tuple(obj.orientation)),
-    )
-    logger.info(f"Rigid object '{name}': {len(assets)} assets, environment e uses asset e % {len(assets)}")
-    return RigidObject(cfg)
+    logger.info(f"Rigid object '{name}': {len(objects)} variants {list(objects)} in every environment")
+    return objects
 
 
 def expand_scene_file(

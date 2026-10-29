@@ -15,11 +15,10 @@ g1_29dof_wbt_object_scene = SceneConfig(
     },
 )
 
-# Several objects, one per environment group: environment e spawns urdf_files[e % N] (set on the CLI with
-# --scene.rigid-objects.object.urdf-files ...). Heterogeneous assets need physics replication off.
+# Several objects: every environment holds one variant per URDF (set on the CLI with
+# --scene.rigid-objects.object.urdf-files ...); environment e tracks variant e % N, the others stay parked.
 g1_29dof_wbt_multi_object_scene = SceneConfig(
     env_spacing=0.0,
-    replicate_physics=False,
     rigid_objects={
         "object": RigidObjectConfig(urdf_files=[]),
     },

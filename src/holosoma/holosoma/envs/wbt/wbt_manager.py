@@ -214,8 +214,11 @@ class WholeBodyTrackingManager(BaseTask):
             object_states[:, 3:7] = object_ori[:]
             object_states[:, 7:10] = object_lin_vel[:]
             object_states[:, 10:13] = torch.zeros_like(object_lin_vel[:])
-            object_name = motion_command.object_name  # type: ignore[has-type]
-            self.simulator.set_actor_states([object_name], env_ids, object_states)
+            if motion_command.object_groups:  # each environment's own variant; the others stay parked
+                motion_command._set_object_variant_states(env_ids, object_states)
+            else:
+                object_name = motion_command.object_name  # type: ignore[has-type]
+                self.simulator.set_actor_states([object_name], env_ids, object_states)
 
         self.simulator.scene.write_data_to_sim()  # type: ignore[attr-defined]
         self.simulator.sim.forward()  # type: ignore[attr-defined]

@@ -304,9 +304,10 @@ class RigidObjectConfig:
     xml_file: str | None = None
 
     urdf_files: list[str] | None = None
-    """One URDF per environment group instead of a single asset (IsaacSim only): environment e spawns
-    ``urdf_files[e % len(urdf_files)]``. Requires ``SceneConfig.replicate_physics = False``; replaces the
-    tri-format fields above."""
+    """Several object variants instead of a single asset (IsaacSim only): every environment gets one rigid object per
+    URDF, named ``<name>_00``, ``<name>_01``, ..., all identical across environments (physics replication stays
+    on). An object-tracking task with ``motion_dir_object_groups`` uses variant ``e % N`` in environment e and keeps
+    the others parked. Replaces the tri-format fields above."""
 
     asset_root: str | None = None
     """Optional per-asset root; falls back to SceneConfig.asset_root when None."""
