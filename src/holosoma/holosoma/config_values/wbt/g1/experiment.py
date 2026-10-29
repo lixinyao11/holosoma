@@ -233,13 +233,6 @@ g1_29dof_wbt_hybrid_multi_object = replace(
         g1_29dof_wbt_hybrid_object.robot,
         object=replace(g1_29dof_wbt_hybrid_object.robot.object, object_urdf_path=None, object_urdf_paths=[]),
     ),
-    simulator=replace(
-        g1_29dof_wbt_hybrid_object.simulator,
-        config=replace(
-            g1_29dof_wbt_hybrid_object.simulator.config,
-            scene=replace(g1_29dof_wbt_hybrid_object.simulator.config.scene, replicate_physics=False),
-        ),
-    ),
 )
 
 g1_29dof_wbt_fast_sac_w_object = replace(

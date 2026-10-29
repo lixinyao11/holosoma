@@ -983,6 +983,18 @@ def randomize_robot_rigid_body_material_startup(
     )
 
 
+def _object_entity_cfgs(scene, scene_entity_cfg_cls) -> list:
+    """Resolved entity configs of the manipulated object: "object", or its variants "object_00", "object_01", ...
+    (robot.object.object_urdf_paths)."""
+    names = ["object"] if "object" in scene.keys() else sorted(n for n in scene.keys() if n.startswith("object_"))
+    cfgs = []
+    for name in names:
+        cfg = scene_entity_cfg_cls(name, body_names=".*")
+        cfg.resolve(scene)
+        cfgs.append(cfg)
+    return cfgs
+
+
 def randomize_object_rigid_body_material_startup(
     env,
     env_ids: Sequence[int] | torch.Tensor | None = None,
@@ -1016,19 +1028,17 @@ def randomize_object_rigid_body_material_startup(
     if env_ids_cpu.numel() == 0:
         return
 
-    asset_cfg = SceneEntityCfg("object", body_names=".*")
-    asset_cfg.resolve(simulator.scene)
-
-    num_buckets = 64
-    _isaacsim_randomize_rigid_body_material(
-        simulator,
-        env_ids_cpu,
-        asset_cfg,
-        static_friction_range=(static_friction_range[0], static_friction_range[1]),
-        dynamic_friction_range=(dynamic_friction_range[0], dynamic_friction_range[1]),
-        restitution_range=(restitution_range[0], restitution_range[1]),
-        num_buckets=num_buckets,
-    )
+    for asset_cfg in _object_entity_cfgs(simulator.scene, SceneEntityCfg):
+        num_buckets = 64
+        _isaacsim_randomize_rigid_body_material(
+            simulator,
+            env_ids_cpu,
+            asset_cfg,
+            static_friction_range=(static_friction_range[0], static_friction_range[1]),
+            dynamic_friction_range=(dynamic_friction_range[0], dynamic_friction_range[1]),
+            restitution_range=(restitution_range[0], restitution_range[1]),
+            num_buckets=num_buckets,
+        )
 
 
 def randomize_object_rigid_body_mass_startup(
@@ -1063,16 +1073,14 @@ def randomize_object_rigid_body_mass_startup(
     if env_ids_cpu.numel() == 0:
         return
 
-    asset_cfg = SceneEntityCfg("object", body_names=".*")
-    asset_cfg.resolve(simulator.scene)
-
-    _isaacsim_randomize_rigid_body_mass(
-        simulator,
-        env_ids_cpu,
-        asset_cfg,
-        (mass_distribution_params[0], mass_distribution_params[1]),
-        operation="add",
-    )
+    for asset_cfg in _object_entity_cfgs(simulator.scene, SceneEntityCfg):
+        _isaacsim_randomize_rigid_body_mass(
+            simulator,
+            env_ids_cpu,
+            asset_cfg,
+            (mass_distribution_params[0], mass_distribution_params[1]),
+            operation="add",
+        )
 
 
 def randomize_object_rigid_body_inertia_startup(
@@ -1108,22 +1116,20 @@ def randomize_object_rigid_body_inertia_startup(
     if env_ids_cpu.numel() == 0:
         return
 
-    asset_cfg = SceneEntityCfg("object", body_names=".*")
-    asset_cfg.resolve(simulator.scene)
+    for asset_cfg in _object_entity_cfgs(simulator.scene, SceneEntityCfg):
+        ordering = ["Ixx", "Iyy", "Izz", "Ixy", "Iyz", "Ixz"]
+        lower_bounds = [inertia_distribution_params_dict[key][0] for key in ordering]
+        upper_bounds = [inertia_distribution_params_dict[key][1] for key in ordering]
+        inertia_distribution_params = (torch.tensor(lower_bounds, device="cpu"), torch.tensor(upper_bounds, device="cpu"))
 
-    ordering = ["Ixx", "Iyy", "Izz", "Ixy", "Iyz", "Ixz"]
-    lower_bounds = [inertia_distribution_params_dict[key][0] for key in ordering]
-    upper_bounds = [inertia_distribution_params_dict[key][1] for key in ordering]
-    inertia_distribution_params = (torch.tensor(lower_bounds, device="cpu"), torch.tensor(upper_bounds, device="cpu"))
-
-    randomize_rigid_body_inertia(
-        simulator,
-        env_ids_cpu,
-        asset_cfg,
-        inertia_distribution_params,
-        operation="scale",
-        distribution="uniform",
-    )
+        randomize_rigid_body_inertia(
+            simulator,
+            env_ids_cpu,
+            asset_cfg,
+            inertia_distribution_params,
+            operation="scale",
+            distribution="uniform",
+        )
 
 
 def configure_torque_rfi(

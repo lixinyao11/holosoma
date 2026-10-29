@@ -61,6 +61,11 @@ from holosoma.simulator.shared.virtual_gantry import (
 from holosoma.simulator.types import ActorNames, ActorIndices, EnvIds, ActorStates, ActorPoses
 
 
+
+# Object variants (robot.object.object_urdf_paths) an environment does not track are parked here (x, y + k * spacing).
+OBJECT_VARIANT_PARK_OFFSET = (0.0, 30.0)
+OBJECT_VARIANT_PARK_SPACING = 3.0
+
 class IsaacSim(BaseSimulator):
     def __init__(self, tyro_config: FullSimConfig, terrain_manager: TerrainManager, device: str):
         super().__init__(tyro_config, terrain_manager, device)
@@ -393,12 +398,8 @@ class IsaacSim(BaseSimulator):
             self._height_scanner = RayCaster(height_scanner_config)
             self.scene.sensors["height_scanner"] = self._height_scanner
 
-        # clone, filter, and replicate. Per-environment object assets (object_urdf_paths) need environments that are
-        # copies of env_0: an environment inheriting env_0 would compose env_0's object asset into its own.
-        multi_object = bool(self.robot_config.object.object_urdf_paths)
-        if multi_object and self.simulator_config.scene.replicate_physics:
-            raise ValueError("robot.object.object_urdf_paths requires scene.replicate_physics=False.")
-        self.scene.clone_environments(copy_from_source=multi_object)
+        # clone, filter, and replicate
+        self.scene.clone_environments(copy_from_source=False)
 
         if hasattr(self.simulator_config.scene, "usd_file"):
             # Activate collisions with the entire scene
@@ -406,13 +407,14 @@ class IsaacSim(BaseSimulator):
 
         self.scene.filter_collisions(global_prim_paths=global_collision_prims)
 
-        # add objects if object is provided
-        object_urdf_paths = self.robot_config.object.object_urdf_paths or (
+        # add objects if object is provided. With object_urdf_paths, every environment gets one object per URDF
+        # (object_00, object_01, ... at prims Object_00, ...), identical across environments so physics replication
+        # applies; the motion command tracks one per environment and parks the others (OBJECT_VARIANT_PARK_*).
+        variants = self.robot_config.object.object_urdf_paths
+        object_urdf_paths = variants or (
             [self.robot_config.object.object_urdf_path] if self.robot_config.object.object_urdf_path else []
         )
         if object_urdf_paths:
-            object_name = "object"  # hardcoded object name
-            # one spawn config per URDF; several are spawned one per environment (environment e: URDF e % N)
             object_spawns = [
                 sim_utils.UrdfFileCfg(
                     fix_base=False,
@@ -439,17 +441,26 @@ class IsaacSim(BaseSimulator):
                 )
                 for path in object_urdf_paths
             ]
-            object_cfg = RigidObjectCfg(
-                prim_path=f"/World/envs/env_.*/Object",
-                spawn=object_spawns[0]
-                if len(object_spawns) == 1
-                else sim_utils.MultiAssetSpawnerCfg(assets_cfg=object_spawns, random_choice=False),
-                init_state=RigidObjectCfg.InitialStateCfg(
-                    pos=(0.0, 0.0, 0.5),
-                ),
-            )
-            self._object = RigidObject(object_cfg)
-            self.scene.rigid_objects[object_name] = self._object
+            if not variants:
+                object_cfg = RigidObjectCfg(
+                    prim_path=f"/World/envs/env_.*/Object",
+                    spawn=object_spawns[0],
+                    init_state=RigidObjectCfg.InitialStateCfg(
+                        pos=(0.0, 0.0, 0.5),
+                    ),
+                )
+                self._object = RigidObject(object_cfg)
+                self.scene.rigid_objects["object"] = self._object  # hardcoded object name
+            else:
+                for k, spawn in enumerate(object_spawns):
+                    park = (OBJECT_VARIANT_PARK_OFFSET[0], OBJECT_VARIANT_PARK_OFFSET[1] + k * OBJECT_VARIANT_PARK_SPACING)
+                    object_cfg = RigidObjectCfg(
+                        prim_path=f"/World/envs/env_.*/Object_{k:02d}",
+                        spawn=spawn,
+                        init_state=RigidObjectCfg.InitialStateCfg(pos=(park[0], park[1], 0.5)),
+                    )
+                    self.scene.rigid_objects[f"object_{k:02d}"] = RigidObject(object_cfg)
+                self._object = self.scene.rigid_objects["object_00"]
 
         # add lights
         # light_config = sim_utils.DomeLightCfg(intensity=2000.0, color=(0.98, 0.95, 0.88))

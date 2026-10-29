@@ -75,8 +75,9 @@ class RobotForceControlConfig:
 class ObjectConfig:
     object_urdf_path: str | None = None
     object_urdf_paths: list[str] | None = None
-    """One URDF per environment group instead of ``object_urdf_path`` (IsaacSim only): environment e spawns
-    ``object_urdf_paths[e % len(object_urdf_paths)]``. Requires ``scene.replicate_physics = False``."""
+    """Several object variants instead of ``object_urdf_path`` (IsaacSim only): every environment gets one object per
+    URDF (``object_00``, ``object_01``, ...), identical across environments; with ``motion_dir_object_groups`` the motion
+    command tracks variant ``e % N`` in environment e and parks the others."""
 
 
 @dataclass(frozen=True)
