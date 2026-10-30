@@ -245,12 +245,24 @@ g1_29dof_wbt_command_hybrid_multi_object_exact_object = _hybrid_command(
     )
 )
 
+# Same, with HDMI's rewind: after a failure, 80 % of track envs restart on the same clip 25-125 steps (0.5-2.5 s) before
+# it, so that reaching for and lifting the object is practised rather than starting with it already in the hands.
+g1_29dof_wbt_command_hybrid_multi_object_exact_object_rewind = _hybrid_command(
+    replace(
+        hybrid_multi_object_motion_config,
+        noise_to_initial_pose=replace(hybrid_multi_object_motion_config.noise_to_initial_pose, object_pos=[0.0, 0.0, 0.0]),
+        rewind_prob=0.8,
+        rewind_steps_range=(25, 125),
+    )
+)
+
 __all__ = [
     "g1_29dof_wbt_command",
     "g1_29dof_wbt_command_climb",
     "g1_29dof_wbt_command_hybrid_climb",
     "g1_29dof_wbt_command_hybrid_multi_object",
     "g1_29dof_wbt_command_hybrid_multi_object_exact_object",
+    "g1_29dof_wbt_command_hybrid_multi_object_exact_object_rewind",
     "g1_29dof_wbt_command_hybrid_object",
     "g1_29dof_wbt_command_w_object",
     "hybrid_climb_cfg",

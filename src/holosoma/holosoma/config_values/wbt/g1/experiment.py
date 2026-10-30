@@ -292,6 +292,16 @@ g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands = replac
     termination=termination.g1_29dof_wbt_termination_hybrid_object_persistent_anchor,
 )
 
+# Same, with HDMI's rewind after failures (track envs, 80 %, 25-125 steps back on the same clip).
+g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind = replace(
+    g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands,
+    training=replace(
+        g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands.training,
+        name="g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind",
+    ),
+    command=command.g1_29dof_wbt_command_hybrid_multi_object_exact_object_rewind,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -326,6 +336,8 @@ __all__ = [
     "g1_29dof_wbt_hybrid_multi_object_future",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist",
+    "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands",
+    "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands",
     "g1_29dof_wbt_hybrid_object",
     "g1_29dof_wbt_w_object",

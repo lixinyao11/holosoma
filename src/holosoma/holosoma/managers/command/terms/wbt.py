@@ -1312,6 +1312,20 @@ class MotionCommand(CommandTermBase):
             self._record_adaptive_sampler_episode_resets(env_ids)
             adaptive_group_ids = self._adaptive_sampler_group_ids(env_ids)
 
+        # Environments whose episode failed may restart on the same clip shortly before the failure (rewind_prob).
+        rewind = None
+        if self.motion_cfg.rewind_prob > 0.0 and not self._env.is_evaluating:
+            n = env_ids.numel()
+            prev_motion_ids = self.motion_ids[env_ids].clone()
+            prev_time_steps = self.time_steps[env_ids].clone()
+            rewind = self._env.termination_manager.terminated[env_ids] & (
+                torch.rand(n, device=self.device) < self.motion_cfg.rewind_prob
+            )
+            rewind &= prev_time_steps < self.motion.motion_end_idx[prev_motion_ids] - 50
+            track_env_mask = getattr(self, "track_env_mask", None)
+            if track_env_mask is not None:
+                rewind &= track_env_mask[env_ids]
+
         # 0. Sample the time steps
         eval_fixed_reset_enabled = False
         if self._env.is_evaluating:
@@ -1352,6 +1366,14 @@ class MotionCommand(CommandTermBase):
             rand_vals = torch.rand(env_ids.numel(), device=self.device, dtype=torch.float32)
             subset = torch.where(rand_vals < start_at_zero_probs, start_idx, subset)
             self.time_steps[env_ids] = subset
+
+        if rewind is not None and rewind.any():
+            back = torch.randint(*self.motion_cfg.rewind_steps_range, (env_ids.numel(),), device=self.device)
+            rewound = (prev_time_steps - back).clamp(min=self.motion.motion_start_idx[prev_motion_ids])
+            self.motion_ids[env_ids] = torch.where(rewind, prev_motion_ids, self.motion_ids[env_ids])
+            self.time_steps[env_ids] = torch.where(rewind, rewound, self.time_steps[env_ids])
+            start_idx = self.motion.motion_start_idx[self.motion_ids[env_ids]]
+            end_idx = self.motion.motion_end_idx[self.motion_ids[env_ids]]
 
         # If the motion is at the last timestep, set it to the second last timestep;
         # Otherwise, update_tasks_callback will advance the timestep to the next timestep -> out of bounds error.

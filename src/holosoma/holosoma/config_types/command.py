@@ -326,6 +326,15 @@ class MotionConfig:
     start_at_timestep_zero_prob: float = 0.1
     """Probability of starting at timestep zero."""
 
+    rewind_prob: float = 0.0
+    """After a bad-tracking termination, probability that a (track) environment restarts on the same clip a little
+    before the failure (HDMI's rewind) instead of at a newly sampled phase, so that the steps leading to the failure
+    (reaching for and lifting an object) are practised again. Not used in evaluation or within 50 steps of a clip's
+    end."""
+
+    rewind_steps_range: tuple[int, int] = (25, 125)
+    """Range [low, high) of steps to go back from the failure when rewinding."""
+
     eval_sample_random_timestep: bool = False
     """During evaluation, sample a random motion timestep on reset instead of forcing the first frame."""
 
