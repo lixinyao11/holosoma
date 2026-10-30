@@ -185,3 +185,11 @@ class BadTrackingZOnlyRelObjectPersistent(BadTrackingZOnlyRelObject):
             self.object_bad_steps.zero_()
         else:
             self.object_bad_steps[env_ids] = 0
+
+
+class BadTrackingGlobalRootRelObjectPersistent(BadTrackingZOnlyRelObjectPersistent):
+    """BadTrackingZOnlyRelObjectPersistent with the anchor checked in all of x, y, z (as BadTracking and HDMI's root
+    termination do): the robot has to stay where the reference is in the world, so that it reaches the object."""
+
+    def bad_ref_pos(self, motion_command: MotionCommand) -> torch.Tensor:
+        return BadTracking.bad_ref_pos(self, motion_command)

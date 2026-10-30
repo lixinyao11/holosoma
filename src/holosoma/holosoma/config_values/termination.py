@@ -5,6 +5,7 @@ from holosoma.config_values.loco.g1.termination import g1_29dof_termination
 from holosoma.config_values.loco.t1.termination import t1_29dof_termination
 from holosoma.config_values.wbt.g1.termination import (
     g1_29dof_wbt_termination,
+    g1_29dof_wbt_termination_global_root_rel_object_persistent,
     g1_29dof_wbt_termination_rel_object,
     g1_29dof_wbt_termination_rel_object_persistent,
 )
@@ -18,6 +19,9 @@ TERMINATION_REGISTRY.add("g1_29dof", g1_29dof_termination)
 TERMINATION_REGISTRY.add("g1_29dof_wbt", g1_29dof_wbt_termination)
 TERMINATION_REGISTRY.add("g1_29dof_wbt_rel_object", g1_29dof_wbt_termination_rel_object)
 TERMINATION_REGISTRY.add("g1_29dof_wbt_rel_object_persistent", g1_29dof_wbt_termination_rel_object_persistent)
+TERMINATION_REGISTRY.add(
+    "g1_29dof_wbt_global_root_rel_object_persistent", g1_29dof_wbt_termination_global_root_rel_object_persistent
+)
 
 from holosoma.utils.config_registry import (  # noqa: E402
     deprecated_defaults_alias as _deprecated_defaults_alias,

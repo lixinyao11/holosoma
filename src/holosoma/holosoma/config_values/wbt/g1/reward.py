@@ -1,5 +1,7 @@
 """Whole Body Tracking reward presets for the G1 robot."""
 
+from dataclasses import replace
+
 from holosoma.config_types.reward import RewardManagerCfg, RewardTermCfg
 
 g1_29dof_wbt_reward = RewardManagerCfg(
@@ -128,9 +130,21 @@ g1_29dof_wbt_reward_w_object_rel = RewardManagerCfg(
     }
 )
 
+# Same, with the anchor's world position weighted as much as the relative body terms (1.0 instead of 0.5), as HDMI's
+# root-aware-global tracking: the robot has to get to the object, not only move like the reference.
+g1_29dof_wbt_reward_w_object_rel_global_root = RewardManagerCfg(
+    terms={
+        **g1_29dof_wbt_reward_w_object_rel.terms,
+        "motion_global_ref_position_error_exp": replace(
+            g1_29dof_wbt_reward_w_object_rel.terms["motion_global_ref_position_error_exp"], weight=1.0
+        ),
+    }
+)
+
 __all__ = [
     "g1_29dof_wbt_fast_sac_reward",
     "g1_29dof_wbt_reward",
     "g1_29dof_wbt_reward_w_object",
     "g1_29dof_wbt_reward_w_object_rel",
+    "g1_29dof_wbt_reward_w_object_rel_global_root",
 ]

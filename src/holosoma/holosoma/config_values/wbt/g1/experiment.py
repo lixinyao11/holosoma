@@ -209,6 +209,14 @@ g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi = replace(
     termination=termination.g1_29dof_wbt_termination_rel_object_persistent,
 )
 
+# Same, with the robot tracked in the world as HDMI's root-aware-global variant: the anchor ends the episode when
+# 0.5 m off in x, y or z, and its world position reward weighs 1.0.
+g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global = replace(
+    g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi,
+    reward=reward.g1_29dof_wbt_reward_w_object_rel_global_root,
+    termination=termination.g1_29dof_wbt_termination_global_root_rel_object_persistent,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -231,6 +239,7 @@ __all__ = [
     "g1_29dof_wbt_w_multi_object_rubberhand",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi",
+    "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global",
     "g1_29dof_wbt_w_multi_object_state",
     "g1_29dof_wbt_w_object",
 ]

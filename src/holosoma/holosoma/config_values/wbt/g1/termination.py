@@ -78,8 +78,20 @@ g1_29dof_wbt_termination_rel_object_persistent = TerminationManagerCfg(
     }
 )
 
+# Same, with the anchor checked in all of x, y, z (0.5 m) instead of z only.
+g1_29dof_wbt_termination_global_root_rel_object_persistent = TerminationManagerCfg(
+    terms={
+        **g1_29dof_wbt_termination_rel_object_persistent.terms,
+        "bad_tracking": replace(
+            g1_29dof_wbt_termination_rel_object_persistent.terms["bad_tracking"],
+            func="holosoma.managers.termination.terms.wbt:BadTrackingGlobalRootRelObjectPersistent",
+        ),
+    }
+)
+
 __all__ = [
     "g1_29dof_wbt_termination",
+    "g1_29dof_wbt_termination_global_root_rel_object_persistent",
     "g1_29dof_wbt_termination_rel_object",
     "g1_29dof_wbt_termination_rel_object_persistent",
 ]
