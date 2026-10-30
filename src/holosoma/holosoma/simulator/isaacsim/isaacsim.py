@@ -143,12 +143,12 @@ class IsaacSim(BaseSimulator):
         else:
             viewer_config: ViewerCfg = ViewerCfg()
 
+        self.viewport_camera_controller: ViewportCameraController | None = None
         if self.sim.render_mode >= self.sim.RenderMode.PARTIAL_RENDERING:
-            self.viewport_camera_controller: ViewportCameraController | None = ViewportCameraController(
-                self, viewer_config
-            )
-        else:
-            self.viewport_camera_controller = None
+            try:
+                self.viewport_camera_controller = ViewportCameraController(self, viewer_config)
+            except RuntimeError as exc:  # headless without a viewport: there is no camera prim to place
+                logger.warning(f"No viewport camera controller: {exc}")
 
         # play the simulator to activate physics handles
         # note: this activates the physics simulation view that exposes TensorAPIs

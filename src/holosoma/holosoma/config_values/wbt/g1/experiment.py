@@ -242,6 +242,21 @@ g1_29dof_wbt_hybrid_multi_object_future = replace(
     observation=observation.g1_29dof_wbt_observation_hybrid_multi_object_future,
 )
 
+# Same, with the G1's rubber hands as collision bodies: the hands the Denso clips were retargeted with (the half
+# sphere ends ~8 cm short of the rubber hand's fingertips, so retargeted contacts are lost).
+g1_29dof_wbt_hybrid_multi_object_future_rubberhand = replace(
+    g1_29dof_wbt_hybrid_multi_object_future,
+    training=replace(
+        g1_29dof_wbt_hybrid_multi_object_future.training, name="g1_29dof_wbt_hybrid_multi_object_future_rubberhand"
+    ),
+    robot=replace(
+        g1_29dof_wbt_hybrid_multi_object_future.robot,
+        asset=replace(
+            g1_29dof_wbt_hybrid_multi_object_future.robot.asset, urdf_file="g1/main_mesh_collision_rubberhand.urdf"
+        ),
+    ),
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -274,6 +289,7 @@ __all__ = [
     "g1_29dof_wbt_hybrid_climb",
     "g1_29dof_wbt_hybrid_multi_object",
     "g1_29dof_wbt_hybrid_multi_object_future",
+    "g1_29dof_wbt_hybrid_multi_object_future_rubberhand",
     "g1_29dof_wbt_hybrid_object",
     "g1_29dof_wbt_w_object",
 ]
