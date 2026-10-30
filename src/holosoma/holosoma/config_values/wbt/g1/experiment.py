@@ -217,6 +217,12 @@ g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global = replace(
     termination=termination.g1_29dof_wbt_termination_global_root_rel_object_persistent,
 )
 
+# Same, with the hands rewarded for their place on the object and HDMI's joint position term.
+g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands = replace(
+    g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global,
+    reward=reward.g1_29dof_wbt_reward_w_object_rel_global_root_hands,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -240,6 +246,7 @@ __all__ = [
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global",
+    "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands",
     "g1_29dof_wbt_w_multi_object_state",
     "g1_29dof_wbt_w_object",
 ]

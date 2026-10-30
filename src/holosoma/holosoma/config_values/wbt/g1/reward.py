@@ -141,10 +141,34 @@ g1_29dof_wbt_reward_w_object_rel_global_root = RewardManagerCfg(
     }
 )
 
+# Same, with the hands rewarded for being where the reference puts them on the object (in the object's frame, sigma
+# 0.1 m, while within 0.5 m of it in the reference) and HDMI's joint position term: with only the relative body terms
+# (sigma 0.3 m over 14 bodies) a hand 10 cm off still gets ~90 % of the reward, and never touches the object.
+g1_29dof_wbt_reward_w_object_rel_global_root_hands = RewardManagerCfg(
+    terms={
+        **g1_29dof_wbt_reward_w_object_rel_global_root.terms,
+        "hand_object_position_error_exp": RewardTermCfg(
+            func="holosoma.managers.reward.terms.wbt:hand_object_position_error_exp",
+            params={
+                "sigma": 0.1,
+                "body_names": ["left_wrist_yaw_link", "right_wrist_yaw_link"],
+                "max_ref_distance": 0.5,
+            },
+            weight=1.0,
+        ),
+        "motion_joint_pos_error_exp": RewardTermCfg(
+            func="holosoma.managers.reward.terms.wbt:motion_joint_pos_error_exp",
+            params={"sigma": 0.25},
+            weight=0.5,
+        ),
+    }
+)
+
 __all__ = [
     "g1_29dof_wbt_fast_sac_reward",
     "g1_29dof_wbt_reward",
     "g1_29dof_wbt_reward_w_object",
     "g1_29dof_wbt_reward_w_object_rel",
     "g1_29dof_wbt_reward_w_object_rel_global_root",
+    "g1_29dof_wbt_reward_w_object_rel_global_root_hands",
 ]
