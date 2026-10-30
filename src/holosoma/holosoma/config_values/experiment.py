@@ -14,6 +14,7 @@ from holosoma.config_values.wbt.g1.experiment import (
     g1_29dof_wbt_hybrid_multi_object_future,
     g1_29dof_wbt_hybrid_multi_object_future_rubberhand,
     g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist,
+    g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands,
     g1_29dof_wbt_hybrid_object,
     g1_29dof_wbt_w_object,
 )
@@ -32,6 +33,9 @@ DEFAULTS = {
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand": g1_29dof_wbt_hybrid_multi_object_future_rubberhand,
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist": (
         g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist
+    ),
+    "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands": (
+        g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands
     ),
     "g1_29dof_wbt_w_object": g1_29dof_wbt_w_object,
     "g1_29dof_wbt_fast_sac": g1_29dof_wbt_fast_sac,

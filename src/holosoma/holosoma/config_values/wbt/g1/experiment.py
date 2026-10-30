@@ -269,6 +269,16 @@ g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist = replace(
     termination=termination.g1_29dof_wbt_termination_hybrid_object_persistent,
 )
 
+# Same, with (track envs) the hands rewarded for their place on the object and HDMI's joint position term.
+g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands = replace(
+    g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist,
+    training=replace(
+        g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist.training,
+        name="g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands",
+    ),
+    reward=reward.g1_29dof_wbt_reward_hybrid_object_hands,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -303,6 +313,7 @@ __all__ = [
     "g1_29dof_wbt_hybrid_multi_object_future",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist",
+    "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands",
     "g1_29dof_wbt_hybrid_object",
     "g1_29dof_wbt_w_object",
 ]
