@@ -36,7 +36,12 @@ source "$SCRIPT_DIR/source_isaacsim_setup.sh"    # also puts this checkout's src
 cd "$SCRIPT_DIR/.."                               # holosoma writes logs/ relative to the working directory
 # NPROC > 1: one training process per GPU (torchrun); --training.num-envs is then the total over all GPUs
 LAUNCH=(python)
-(( ${NPROC:-1} > 1 )) && LAUNCH=(python -m torch.distributed.run --standalone --nproc_per_node="$NPROC")
+if (( ${NPROC:-1} > 1 )); then
+  LAUNCH=(python -m torch.distributed.run --standalone --nproc_per_node="$NPROC")
+  # train_agent passes device_id, so NCCL is initialised eagerly in non-blocking mode; on 4x L40S that hung within
+  # a few iterations (a rank stuck in ncclGroupJobComplete) and ran at half speed. Blocking comms, connected at init.
+  export TORCH_NCCL_USE_COMM_NONBLOCKING=${TORCH_NCCL_USE_COMM_NONBLOCKING:-0} NCCL_RUNTIME_CONNECT=${NCCL_RUNTIME_CONNECT:-0}
+fi
 "${LAUNCH[@]}" src/holosoma/holosoma/train_agent.py "exp:$EXP" "$@" \
   --command.setup-terms.motion-command.params.motion-config.motion-dir="$(IFS=,; echo "${dirs[*]}")" \
   --robot.object.object-urdf-paths "[$(IFS=,; echo "${urdfs[*]}")]"     # Python list literal (holosoma's tyro)
