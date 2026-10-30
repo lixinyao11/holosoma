@@ -7,6 +7,7 @@ from holosoma.config_values.wbt.g1.reward import (
     g1_29dof_wbt_fast_sac_reward,
     g1_29dof_wbt_reward,
     g1_29dof_wbt_reward_w_object,
+    g1_29dof_wbt_reward_w_object_rel,
 )
 from holosoma.utils.config_registry import ConfigRegistry
 
@@ -19,6 +20,7 @@ REWARD_REGISTRY.add("g1_29dof_loco", g1_29dof_loco)
 REWARD_REGISTRY.add("g1_29dof_loco_fast_sac", g1_29dof_loco_fast_sac)
 REWARD_REGISTRY.add("g1_29dof_wbt", g1_29dof_wbt_reward)
 REWARD_REGISTRY.add("g1_29dof_wbt_w_object", g1_29dof_wbt_reward_w_object)
+REWARD_REGISTRY.add("g1_29dof_wbt_w_object_rel", g1_29dof_wbt_reward_w_object_rel)
 REWARD_REGISTRY.add("g1_29dof_wbt_fast_sac", g1_29dof_wbt_fast_sac_reward)
 
 from holosoma.utils.config_registry import (  # noqa: E402

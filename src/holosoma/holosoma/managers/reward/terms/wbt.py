@@ -126,6 +126,21 @@ def object_global_ref_orientation_error_exp(env: WholeBodyTrackingManager, sigma
     return torch.exp(-error / sigma**2)
 
 
+def object_relative_position_error_exp(env: WholeBodyTrackingManager, sigma: float) -> torch.Tensor:
+    """Object position against the reference object re-anchored to the robot (like the relative body terms)."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    error = torch.sum(
+        torch.square(motion_command.object_pos_relative_w - motion_command.simulator_object_pos_w), dim=-1
+    )
+    return torch.exp(-error / sigma**2)
+
+
+def object_relative_orientation_error_exp(env: WholeBodyTrackingManager, sigma: float) -> torch.Tensor:
+    motion_command = _get_motion_command_and_assert_type(env)
+    error = quat_error_magnitude(motion_command.object_quat_relative_w, motion_command.simulator_object_quat_w) ** 2
+    return torch.exp(-error / sigma**2)
+
+
 # ================================================================================================
 # Undesired Contacts Rewards
 # ================================================================================================

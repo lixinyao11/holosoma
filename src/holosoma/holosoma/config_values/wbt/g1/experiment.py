@@ -191,6 +191,15 @@ g1_29dof_wbt_w_multi_object_rubberhand = replace(
     ),
 )
 
+# Rubber hands, and the object tracked and checked relative to the robot (as the bodies are) and reset exactly to its
+# reference pose: the robot drifting while it holds the object no longer ends the episode.
+g1_29dof_wbt_w_multi_object_rubberhand_relobj = replace(
+    g1_29dof_wbt_w_multi_object_rubberhand,
+    command=command.g1_29dof_wbt_command_w_multi_object_exact_object,
+    reward=reward.g1_29dof_wbt_reward_w_object_rel,
+    termination=termination.g1_29dof_wbt_termination_rel_object,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -211,6 +220,7 @@ __all__ = [
     "g1_29dof_wbt_fast_sac_w_object",
     "g1_29dof_wbt_w_multi_object",
     "g1_29dof_wbt_w_multi_object_rubberhand",
+    "g1_29dof_wbt_w_multi_object_rubberhand_relobj",
     "g1_29dof_wbt_w_multi_object_state",
     "g1_29dof_wbt_w_object",
 ]

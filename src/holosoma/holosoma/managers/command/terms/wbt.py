@@ -973,6 +973,14 @@ class MotionCommand(CommandTermBase):
             + delta_pos_w_height
             + quat_apply(delta_quat_w, self.body_pos_w - ref_pos_w_repeat, w_last=True)
         )
+        ### 1.2.3 the reference object, re-anchored the same way (where the object should be given the robot's pose)
+        if self.motion.has_object:
+            self.object_quat_relative_w = quat_mul(delta_quat_w[:, 0], self.object_quat_w, w_last=True)
+            self.object_pos_relative_w = (
+                robot_ref_pos_w
+                + delta_pos_w_height[:, 0]
+                + quat_apply(delta_quat_w[:, 0], self.object_pos_w - ref_pos_w, w_last=True)
+            )
 
         ### 1.3 update the adaptive timesteps sampler (training only — eval episodes
         ### must not decay/fold failure stats into the training sampler).
@@ -1176,6 +1184,9 @@ class MotionCommand(CommandTermBase):
             self.num_envs, len(self.motion_cfg.body_names_to_track), 4, device=self.device
         )
         self.body_quat_relative_w[:, :, 0] = 1.0
+        self.object_pos_relative_w = torch.zeros(self.num_envs, 3, device=self.device)
+        self.object_quat_relative_w = torch.zeros(self.num_envs, 4, device=self.device)
+        self.object_quat_relative_w[:, 3] = 1.0
 
         if self.motion_cfg.use_adaptive_timesteps_sampler:
             self.adaptive_timesteps_sampler.init_buffers()

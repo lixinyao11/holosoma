@@ -144,3 +144,16 @@ class BadTrackingZOnly(BadTracking):
             motion_command.body_pos_relative_w[:, body_idx, -1] - motion_command.robot_body_pos_w[:, body_idx, -1]
         )
         return torch.any(error > self.bad_motion_body_pos_threshold, dim=-1)
+
+
+class BadTrackingZOnlyRelObject(BadTrackingZOnly):
+    """BadTrackingZOnly with the object checked against the reference object re-anchored to the robot (as the tracked
+    bodies are), so that the robot drifting while it holds the object does not end the episode."""
+
+    def bad_object_pos(self, motion_command: MotionCommand) -> torch.Tensor:
+        error = torch.norm(motion_command.object_pos_relative_w - motion_command.simulator_object_pos_w, dim=-1)
+        return error > self.bad_object_pos_threshold
+
+    def bad_object_ori(self, motion_command: MotionCommand) -> torch.Tensor:
+        error = quat_error_magnitude(motion_command.object_quat_relative_w, motion_command.simulator_object_quat_w)
+        return error > self.bad_object_ori_threshold

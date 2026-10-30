@@ -1,5 +1,7 @@
 """Whole Body Tracking termination presets for the G1 robot."""
 
+from dataclasses import replace
+
 from holosoma.config_types.termination import TerminationManagerCfg, TerminationTermCfg
 
 g1_29dof_wbt_termination = TerminationManagerCfg(
@@ -47,4 +49,15 @@ g1_29dof_wbt_termination = TerminationManagerCfg(
     }
 )
 
-__all__ = ["g1_29dof_wbt_termination"]
+# The object checked against the reference object re-anchored to the robot, like the tracked bodies.
+g1_29dof_wbt_termination_rel_object = TerminationManagerCfg(
+    terms={
+        **g1_29dof_wbt_termination.terms,
+        "bad_tracking": replace(
+            g1_29dof_wbt_termination.terms["bad_tracking"],
+            func="holosoma.managers.termination.terms.wbt:BadTrackingZOnlyRelObject",
+        ),
+    }
+)
+
+__all__ = ["g1_29dof_wbt_termination", "g1_29dof_wbt_termination_rel_object"]

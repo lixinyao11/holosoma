@@ -110,4 +110,27 @@ g1_29dof_wbt_reward_w_object = RewardManagerCfg(
     }
 )
 
-__all__ = ["g1_29dof_wbt_fast_sac_reward", "g1_29dof_wbt_reward", "g1_29dof_wbt_reward_w_object"]
+# The object tracked relative to the robot (the reference object re-anchored to the robot, like the relative body
+# terms) instead of in the world frame.
+g1_29dof_wbt_reward_w_object_rel = RewardManagerCfg(
+    terms={
+        **g1_29dof_wbt_reward.terms,
+        "object_relative_position_error_exp": RewardTermCfg(
+            func="holosoma.managers.reward.terms.wbt:object_relative_position_error_exp",
+            params={"sigma": 0.3},
+            weight=1.0,
+        ),
+        "object_relative_orientation_error_exp": RewardTermCfg(
+            func="holosoma.managers.reward.terms.wbt:object_relative_orientation_error_exp",
+            params={"sigma": 0.4},
+            weight=1.0,
+        ),
+    }
+)
+
+__all__ = [
+    "g1_29dof_wbt_fast_sac_reward",
+    "g1_29dof_wbt_reward",
+    "g1_29dof_wbt_reward_w_object",
+    "g1_29dof_wbt_reward_w_object_rel",
+]

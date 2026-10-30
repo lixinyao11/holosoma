@@ -94,8 +94,25 @@ g1_29dof_wbt_command_w_multi_object = replace(
     },
 )
 
+# Same, with the object reset exactly to its reference pose (no position noise).
+g1_29dof_wbt_command_w_multi_object_exact_object = replace(
+    g1_29dof_wbt_command,
+    setup_terms={
+        "motion_command": CommandTermCfg(
+            func="holosoma.managers.command.terms.wbt:MotionCommand",
+            params={
+                "motion_config": replace(
+                    motion_config_w_multi_object,
+                    noise_to_initial_pose=replace(init_pose_config, object_pos=[0.0, 0.0, 0.0]),
+                ),
+            },
+        )
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_command",
     "g1_29dof_wbt_command_w_multi_object",
+    "g1_29dof_wbt_command_w_multi_object_exact_object",
     "g1_29dof_wbt_command_w_object",
 ]
