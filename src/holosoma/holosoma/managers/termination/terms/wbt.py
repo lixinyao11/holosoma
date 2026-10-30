@@ -234,6 +234,13 @@ class HybridBadTracking(BadTracking):
         # HDMI's cumulative object terminations: a policy that lets the object slip can still catch it again
         self.object_persist_steps = cfg.params.get("object_persist_steps", 1)
         self.object_bad_steps = torch.zeros(self.env.num_envs, dtype=torch.long, device=self.env.device)
+        # track envs' hands and feet checked on height only, as the non-hybrid presets (BadTrackingZOnly) do
+        self.body_pos_z_only = cfg.params.get("body_pos_z_only", False)
+
+    def bad_motion_body_pos(self, motion_command: MotionCommand) -> torch.Tensor:
+        if self.body_pos_z_only:
+            return BadTrackingZOnly.bad_motion_body_pos(self, motion_command)
+        return super().bad_motion_body_pos(motion_command)
 
     def gen_bad_ref_pos_z(self, motion_command: MotionCommand) -> torch.Tensor:
         """Terminate gen envs if robot torso z deviates too much from the current-step reference z."""

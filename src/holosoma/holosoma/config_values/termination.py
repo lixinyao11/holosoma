@@ -8,6 +8,7 @@ from holosoma.config_values.wbt.g1.termination import (
     g1_29dof_wbt_termination_hybrid_object,
     g1_29dof_wbt_termination_hybrid_object_persistent,
     g1_29dof_wbt_termination_hybrid_object_persistent_anchor,
+    g1_29dof_wbt_termination_hybrid_object_persistent_anchor_zbody,
 )
 
 none = None
@@ -21,4 +22,5 @@ DEFAULTS = {
     "g1_29dof_wbt_hybrid_object": g1_29dof_wbt_termination_hybrid_object,
     "g1_29dof_wbt_hybrid_object_persistent": g1_29dof_wbt_termination_hybrid_object_persistent,
     "g1_29dof_wbt_hybrid_object_persistent_anchor": g1_29dof_wbt_termination_hybrid_object_persistent_anchor,
+    "g1_29dof_wbt_hybrid_object_persistent_anchor_zbody": g1_29dof_wbt_termination_hybrid_object_persistent_anchor_zbody,
 }

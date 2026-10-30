@@ -302,6 +302,16 @@ g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind =
     command=command.g1_29dof_wbt_command_hybrid_multi_object_exact_object_rewind,
 )
 
+# Same, with the track envs' hands and feet checked on height only.
+g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody = replace(
+    g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind,
+    training=replace(
+        g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind.training,
+        name="g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody",
+    ),
+    termination=termination.g1_29dof_wbt_termination_hybrid_object_persistent_anchor_zbody,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -338,6 +348,7 @@ __all__ = [
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind",
+    "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands",
     "g1_29dof_wbt_hybrid_object",
     "g1_29dof_wbt_w_object",

@@ -115,10 +115,23 @@ g1_29dof_wbt_termination_hybrid_object_persistent_anchor = TerminationManagerCfg
     }
 )
 
+# Same, with the track envs' hands and feet checked on height only (as the standard multi-object runs): checked in x, y,
+# z, 0.25 m off ended almost every episode before the lift.
+g1_29dof_wbt_termination_hybrid_object_persistent_anchor_zbody = TerminationManagerCfg(
+    terms={
+        **g1_29dof_wbt_termination_hybrid_object_persistent_anchor.terms,
+        "bad_tracking": replace(
+            g1_29dof_wbt_termination_hybrid_object_persistent_anchor.terms["bad_tracking"],
+            params={**g1_29dof_wbt_termination_hybrid_object_persistent_anchor.terms["bad_tracking"].params, "body_pos_z_only": True},
+        ),
+    }
+)
+
 __all__ = [
     "g1_29dof_wbt_termination",
     "g1_29dof_wbt_termination_hybrid_climb",
     "g1_29dof_wbt_termination_hybrid_object",
     "g1_29dof_wbt_termination_hybrid_object_persistent",
     "g1_29dof_wbt_termination_hybrid_object_persistent_anchor",
+    "g1_29dof_wbt_termination_hybrid_object_persistent_anchor_zbody",
 ]
