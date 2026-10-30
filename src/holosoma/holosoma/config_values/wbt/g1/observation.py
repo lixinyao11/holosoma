@@ -164,6 +164,31 @@ actor_obs_w_object_rel_state = ObsGroupCfg(
     },
 )
 
+# Same, with the hands' place on the object (simulated hands in the object's frame, and their error to the reference
+# hands in the reference object's frame) for the actor; the critic also gets them and the reference object, which the
+# object rewards are computed against (one clip could leave it implicit in the reference joints, hundreds cannot).
+HANDS = ["left_wrist_yaw_link", "right_wrist_yaw_link"]
+hand_obs_terms = {
+    name: ObsTermCfg(
+        func=f"holosoma.managers.observation.terms.wbt:{name}", params={"body_names": HANDS}, scale=1.0, noise=0.0
+    )
+    for name in ["hand_obj_pos", "hand_obj_pos_error"]
+}
+actor_obs_w_object_rel_state_hands = ObsGroupCfg(
+    concatenate=True,
+    enable_noise=True,
+    history_length=1,
+    terms={**actor_obs_w_object_rel_state.terms, **hand_obs_terms},
+)
+critic_obs_w_multi_object_ref_hands_terms = {
+    **critic_obs_w_multi_object_terms,
+    **{
+        name: ObsTermCfg(func=f"holosoma.managers.observation.terms.wbt:{name}", scale=1.0, noise=0.0)
+        for name in ["obj_ref_pos_b", "obj_ref_ori_b", "obj_ref_rel_pos_b", "obj_ref_rel_ori_b"]
+    },
+    **hand_obs_terms,
+}
+
 g1_29dof_wbt_observation = ObservationManagerCfg(
     groups={
         "actor_obs": actor_obs_shared,
@@ -229,10 +254,24 @@ g1_29dof_wbt_observation_w_multi_object_rel_state = ObservationManagerCfg(
     },
 )
 
+# Several objects, with the hands' place on the object for both, and the reference object for the critic.
+g1_29dof_wbt_observation_w_multi_object_rel_state_hands = ObservationManagerCfg(
+    groups={
+        "actor_obs": actor_obs_w_object_rel_state_hands,
+        "critic_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=False,
+            history_length=1,
+            terms=critic_obs_w_multi_object_ref_hands_terms,
+        ),
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_observation",
     "g1_29dof_wbt_observation_w_multi_object",
     "g1_29dof_wbt_observation_w_multi_object_rel_state",
+    "g1_29dof_wbt_observation_w_multi_object_rel_state_hands",
     "g1_29dof_wbt_observation_w_multi_object_state",
     "g1_29dof_wbt_observation_w_object",
 ]

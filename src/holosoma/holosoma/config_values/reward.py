@@ -8,6 +8,7 @@ from holosoma.config_values.wbt.g1.reward import (
     g1_29dof_wbt_reward,
     g1_29dof_wbt_reward_w_object,
     g1_29dof_wbt_reward_w_object_rel,
+    g1_29dof_wbt_reward_w_object_rel_anchor_hands,
     g1_29dof_wbt_reward_w_object_rel_global_root,
     g1_29dof_wbt_reward_w_object_rel_global_root_hands,
 )
@@ -27,6 +28,7 @@ REWARD_REGISTRY.add("g1_29dof_wbt_w_object_rel_global_root", g1_29dof_wbt_reward
 REWARD_REGISTRY.add(
     "g1_29dof_wbt_w_object_rel_global_root_hands", g1_29dof_wbt_reward_w_object_rel_global_root_hands
 )
+REWARD_REGISTRY.add("g1_29dof_wbt_w_object_rel_anchor_hands", g1_29dof_wbt_reward_w_object_rel_anchor_hands)
 REWARD_REGISTRY.add("g1_29dof_wbt_fast_sac", g1_29dof_wbt_fast_sac_reward)
 
 from holosoma.utils.config_registry import (  # noqa: E402

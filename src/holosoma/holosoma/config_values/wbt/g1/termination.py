@@ -89,8 +89,23 @@ g1_29dof_wbt_termination_global_root_rel_object_persistent = TerminationManagerC
     }
 )
 
+# Same, with the anchor ending the episode at 0.3 m off instead of 0.5 m.
+g1_29dof_wbt_termination_anchor_rel_object_persistent = TerminationManagerCfg(
+    terms={
+        **g1_29dof_wbt_termination_global_root_rel_object_persistent.terms,
+        "bad_tracking": replace(
+            g1_29dof_wbt_termination_global_root_rel_object_persistent.terms["bad_tracking"],
+            params={
+                **g1_29dof_wbt_termination_global_root_rel_object_persistent.terms["bad_tracking"].params,
+                "bad_ref_pos_threshold": 0.3,
+            },
+        ),
+    }
+)
+
 __all__ = [
     "g1_29dof_wbt_termination",
+    "g1_29dof_wbt_termination_anchor_rel_object_persistent",
     "g1_29dof_wbt_termination_global_root_rel_object_persistent",
     "g1_29dof_wbt_termination_rel_object",
     "g1_29dof_wbt_termination_rel_object_persistent",

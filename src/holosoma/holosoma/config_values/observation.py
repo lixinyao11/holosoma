@@ -7,6 +7,7 @@ from holosoma.config_values.wbt.g1.observation import (
     g1_29dof_wbt_observation,
     g1_29dof_wbt_observation_w_multi_object,
     g1_29dof_wbt_observation_w_multi_object_rel_state,
+    g1_29dof_wbt_observation_w_multi_object_rel_state_hands,
     g1_29dof_wbt_observation_w_multi_object_state,
     g1_29dof_wbt_observation_w_object,
 )
@@ -22,6 +23,9 @@ OBSERVATION_REGISTRY.add("g1_29dof_wbt_w_object", g1_29dof_wbt_observation_w_obj
 OBSERVATION_REGISTRY.add("g1_29dof_wbt_w_multi_object", g1_29dof_wbt_observation_w_multi_object)
 OBSERVATION_REGISTRY.add("g1_29dof_wbt_w_multi_object_state", g1_29dof_wbt_observation_w_multi_object_state)
 OBSERVATION_REGISTRY.add("g1_29dof_wbt_w_multi_object_rel_state", g1_29dof_wbt_observation_w_multi_object_rel_state)
+OBSERVATION_REGISTRY.add(
+    "g1_29dof_wbt_w_multi_object_rel_state_hands", g1_29dof_wbt_observation_w_multi_object_rel_state_hands
+)
 
 from holosoma.utils.config_registry import (  # noqa: E402
     deprecated_defaults_alias as _deprecated_defaults_alias,

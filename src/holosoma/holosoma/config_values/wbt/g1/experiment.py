@@ -223,6 +223,16 @@ g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands = replace(
     reward=reward.g1_29dof_wbt_reward_w_object_rel_global_root_hands,
 )
 
+# Same, with the robot held to the reference's place in the world (anchor reward sigma 0.15 m, termination at 0.3 m)
+# and a wide hand term, so that it arrives where the object is; the actor and critic see the hands' place on the
+# object, and the critic the reference object.
+g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands = replace(
+    g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands,
+    observation=observation.g1_29dof_wbt_observation_w_multi_object_rel_state_hands,
+    reward=reward.g1_29dof_wbt_reward_w_object_rel_anchor_hands,
+    termination=termination.g1_29dof_wbt_termination_anchor_rel_object_persistent,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -246,6 +256,7 @@ __all__ = [
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global",
+    "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands",
     "g1_29dof_wbt_w_multi_object_state",
     "g1_29dof_wbt_w_object",

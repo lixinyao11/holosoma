@@ -164,11 +164,32 @@ g1_29dof_wbt_reward_w_object_rel_global_root_hands = RewardManagerCfg(
     }
 )
 
+# Same, with the robot pulled to where the reference is in the world (anchor sigma 0.15 m instead of 0.3 m) and a
+# second, wide hand term (sigma 0.3 m): the robot drifts 15-40 cm off the reference before the lift, where the
+# sigma 0.1 m hand term gives almost no gradient.
+g1_29dof_wbt_reward_w_object_rel_anchor_hands = RewardManagerCfg(
+    terms={
+        **g1_29dof_wbt_reward_w_object_rel_global_root_hands.terms,
+        "motion_global_ref_position_error_exp": replace(
+            g1_29dof_wbt_reward_w_object_rel_global_root_hands.terms["motion_global_ref_position_error_exp"],
+            params={"sigma": 0.15},
+        ),
+        "hand_object_position_error_exp_wide": replace(
+            g1_29dof_wbt_reward_w_object_rel_global_root_hands.terms["hand_object_position_error_exp"],
+            params={
+                **g1_29dof_wbt_reward_w_object_rel_global_root_hands.terms["hand_object_position_error_exp"].params,
+                "sigma": 0.3,
+            },
+        ),
+    }
+)
+
 __all__ = [
     "g1_29dof_wbt_fast_sac_reward",
     "g1_29dof_wbt_reward",
     "g1_29dof_wbt_reward_w_object",
     "g1_29dof_wbt_reward_w_object_rel",
+    "g1_29dof_wbt_reward_w_object_rel_anchor_hands",
     "g1_29dof_wbt_reward_w_object_rel_global_root",
     "g1_29dof_wbt_reward_w_object_rel_global_root_hands",
 ]

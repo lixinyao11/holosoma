@@ -13,6 +13,7 @@ from holosoma.config_values.wbt.g1.experiment import (
     g1_29dof_wbt_w_multi_object_rubberhand,
     g1_29dof_wbt_w_multi_object_rubberhand_relobj,
     g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi,
+    g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands,
     g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global,
     g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands,
     g1_29dof_wbt_w_multi_object_state,
@@ -42,6 +43,10 @@ EXPERIMENT_REGISTRY.add(
 EXPERIMENT_REGISTRY.add(
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands",
     g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands,
+)
+EXPERIMENT_REGISTRY.add(
+    "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands",
+    g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands,
 )
 EXPERIMENT_REGISTRY.add("g1_29dof_wbt_w_multi_object_state", g1_29dof_wbt_w_multi_object_state)
 EXPERIMENT_REGISTRY.add("g1_29dof_wbt_fast_sac", g1_29dof_wbt_fast_sac)

@@ -267,6 +267,36 @@ def obj_ref_rel_ori_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     return mat[..., :2].reshape(mat.shape[0], -1)
 
 
+def _hands_in_object_frame(motion_command: MotionCommand, body_names: list[str], reference: bool) -> torch.Tensor:
+    names = motion_command.motion_cfg.body_names_to_track
+    idx = [names.index(n) for n in body_names]
+    if reference:
+        hand, obj_pos, obj_quat = motion_command.body_pos_w[:, idx], motion_command.object_pos_w, motion_command.object_quat_w
+    else:
+        hand = motion_command.robot_body_pos_w[:, idx]
+        obj_pos, obj_quat = motion_command.simulator_object_pos_w, motion_command.simulator_object_quat_w
+    n = len(idx)
+    local = quat_rotate_inverse(
+        obj_quat[:, None].expand(-1, n, -1).reshape(-1, 4), (hand - obj_pos[:, None]).reshape(-1, 3), w_last=True
+    )
+    return local.view(-1, n, 3)
+
+
+def hand_obj_pos(env: WholeBodyTrackingManager, body_names: list[str]) -> torch.Tensor:
+    """The hands' positions in the simulated object's frame."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    return _hands_in_object_frame(motion_command, body_names, reference=False).reshape(env.num_envs, -1)
+
+
+def hand_obj_pos_error(env: WholeBodyTrackingManager, body_names: list[str]) -> torch.Tensor:
+    """The hands in the simulated object's frame minus the reference hands in the reference object's frame (what
+    ``hand_object_position_error_exp`` rewards)."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    sim = _hands_in_object_frame(motion_command, body_names, reference=False)
+    ref = _hands_in_object_frame(motion_command, body_names, reference=True)
+    return (sim - ref).reshape(env.num_envs, -1)
+
+
 def obj_lin_vel_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     motion_command = _get_motion_command_and_assert_type(env)
     unit_quat = torch.tensor([0.0, 0.0, 0.0, 1.0], device=env.device).unsqueeze(0).repeat(env.num_envs, 1)
