@@ -34,6 +34,9 @@ for o in $OBJECTS; do
 done
 source "$SCRIPT_DIR/source_isaacsim_setup.sh"    # also puts this checkout's src/holosoma first on PYTHONPATH
 cd "$SCRIPT_DIR/.."                               # holosoma writes logs/ relative to the working directory
-python src/holosoma/holosoma/train_agent.py "exp:$EXP" "$@" \
+# NPROC > 1: one training process per GPU (torchrun); --training.num-envs is then the total over all GPUs
+LAUNCH=(python)
+(( ${NPROC:-1} > 1 )) && LAUNCH=(python -m torch.distributed.run --standalone --nproc_per_node="$NPROC")
+"${LAUNCH[@]}" src/holosoma/holosoma/train_agent.py "exp:$EXP" "$@" \
   --command.setup-terms.motion-command.params.motion-config.motion-dir="$(IFS=,; echo "${dirs[*]}")" \
   --robot.object.object-urdf-paths "[$(IFS=,; echo "${urdfs[*]}")]"     # Python list literal (holosoma's tyro)
