@@ -182,6 +182,15 @@ g1_29dof_wbt_w_multi_object_state = replace(
     observation=observation.g1_29dof_wbt_observation_w_multi_object_state,
 )
 
+# Same as g1_29dof_wbt_w_multi_object, with the G1's rubber hands (robot g1_29dof_w_object_rubberhand).
+g1_29dof_wbt_w_multi_object_rubberhand = replace(
+    g1_29dof_wbt_w_multi_object,
+    robot=replace(
+        g1_29dof_wbt_w_multi_object.robot,
+        asset=replace(g1_29dof_wbt_w_multi_object.robot.asset, urdf_file="g1/main_mesh_collision_rubberhand.urdf"),
+    ),
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -201,6 +210,7 @@ __all__ = [
     "g1_29dof_wbt_fast_sac",
     "g1_29dof_wbt_fast_sac_w_object",
     "g1_29dof_wbt_w_multi_object",
+    "g1_29dof_wbt_w_multi_object_rubberhand",
     "g1_29dof_wbt_w_multi_object_state",
     "g1_29dof_wbt_w_object",
 ]

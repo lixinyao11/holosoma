@@ -1120,8 +1120,16 @@ g1_29dof_w_object = replace(
     ),
 )
 
+# The G1's rubber hands as collision bodies instead of half spheres: the hands Denso's clips were retargeted with
+# (the half sphere ends ~8 cm short of the rubber hand's fingertips, so retargeted contacts are lost).
+g1_29dof_w_object_rubberhand = replace(
+    g1_29dof_w_object,
+    asset=replace(g1_29dof_w_object.asset, urdf_file="g1/main_mesh_collision_rubberhand.urdf"),
+)
+
 ROBOT_REGISTRY.add("g1_29dof", g1_29dof)
 ROBOT_REGISTRY.add("t1_29dof_waist_wrist", t1_29dof_waist_wrist)
 ROBOT_REGISTRY.add("g1_29dof_w_object", g1_29dof_w_object)
+ROBOT_REGISTRY.add("g1_29dof_w_object_rubberhand", g1_29dof_w_object_rubberhand)
 
 __getattr__ = deprecated_defaults_alias(__name__, ROBOT_REGISTRY)
