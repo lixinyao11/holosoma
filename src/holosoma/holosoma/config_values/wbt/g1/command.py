@@ -132,10 +132,26 @@ g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise = replace(
     },
 )
 
+# Same, with HDMI's rewind: after a failure, 80 % of environments restart on the same clip 25-125 steps (0.5-2.5 s)
+# before it, so that reaching for and lifting the object is practised rather than starting with it already in the hands.
+_low_vel_noise_motion_config = g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise.setup_terms[
+    "motion_command"
+].params["motion_config"]
+g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise_rewind = replace(
+    g1_29dof_wbt_command,
+    setup_terms={
+        "motion_command": CommandTermCfg(
+            func="holosoma.managers.command.terms.wbt:MotionCommand",
+            params={"motion_config": replace(_low_vel_noise_motion_config, rewind_prob=0.8, rewind_steps_range=(25, 125))},
+        )
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_command",
     "g1_29dof_wbt_command_w_multi_object",
     "g1_29dof_wbt_command_w_multi_object_exact_object",
     "g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise",
+    "g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise_rewind",
     "g1_29dof_wbt_command_w_object",
 ]

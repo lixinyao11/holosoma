@@ -233,6 +233,12 @@ g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands = replace(
     termination=termination.g1_29dof_wbt_termination_anchor_rel_object_persistent,
 )
 
+# Same, with HDMI's rewind after failures (80 %, 25-125 steps back on the same clip).
+g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind = replace(
+    g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands,
+    command=command.g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise_rewind,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -257,6 +263,7 @@ __all__ = [
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands",
+    "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands",
     "g1_29dof_wbt_w_multi_object_state",
     "g1_29dof_wbt_w_object",

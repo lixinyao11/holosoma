@@ -8,6 +8,7 @@ from holosoma.config_values.wbt.g1.command import (
     g1_29dof_wbt_command_w_multi_object,
     g1_29dof_wbt_command_w_multi_object_exact_object,
     g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise,
+    g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise_rewind,
     g1_29dof_wbt_command_w_object,
 )
 from holosoma.utils.config_registry import ConfigRegistry
@@ -23,6 +24,10 @@ COMMAND_REGISTRY.add("g1_29dof_wbt_w_multi_object", g1_29dof_wbt_command_w_multi
 COMMAND_REGISTRY.add("g1_29dof_wbt_w_multi_object_exact_object", g1_29dof_wbt_command_w_multi_object_exact_object)
 COMMAND_REGISTRY.add(
     "g1_29dof_wbt_w_multi_object_exact_object_low_vel_noise", g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise
+)
+COMMAND_REGISTRY.add(
+    "g1_29dof_wbt_w_multi_object_exact_object_low_vel_noise_rewind",
+    g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise_rewind,
 )
 
 from holosoma.utils.config_registry import (  # noqa: E402

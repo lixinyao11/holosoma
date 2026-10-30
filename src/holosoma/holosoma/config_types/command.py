@@ -114,6 +114,14 @@ class MotionConfig:
     start_at_timestep_zero_prob: float = 0.0
     """Probability of starting at timestep zero."""
 
+    rewind_prob: float = 0.0
+    """After a bad-tracking termination, probability that the environment restarts on the same clip a little before the
+    failure (HDMI's rewind) instead of at a newly sampled phase, so that the steps leading to the failure (reaching for
+    and lifting an object) are practised again. Not used in evaluation or within 50 steps of a clip's end."""
+
+    rewind_steps_range: tuple[int, int] = (25, 125)
+    """Range [low, high) of steps to go back from the failure when rewinding."""
+
     freeze_at_timestep_zero_prob: float = 0.0
     """When starting at timestep 0, probability of freezing motion counter at 0 (not advancing).
     This makes the robot practice holding the initial pose. Only applies when episode starts at timestep 0.

@@ -709,6 +709,16 @@ class MotionCommand(CommandTermBase):
         n = env_ids.numel()
         num_motions = self.motion.num_motions
 
+        # Environments whose episode failed may restart on the same clip shortly before the failure (rewind_prob).
+        rewind = None
+        if self.motion_cfg.rewind_prob > 0.0 and not self._env.is_evaluating:
+            prev_motion_ids = self.motion_ids[env_ids].clone()
+            prev_time_steps = self.time_steps[env_ids].clone()
+            rewind = self._env.termination_manager.terminated[env_ids] & (
+                torch.rand(n, device=self.device) < self.motion_cfg.rewind_prob
+            )
+            rewind &= prev_time_steps < self.motion.motion_end_idx[prev_motion_ids] - 50
+
         # 0. Sample the time steps (and, for the adaptive sampler, the motion id).
         adaptive_global_idx = None
         if self.motion_cfg.use_adaptive_timesteps_sampler:
@@ -784,6 +794,14 @@ class MotionCommand(CommandTermBase):
             rand_vals = torch.rand_like(subset, dtype=torch.float32)
             subset = torch.where(rand_vals < prob, start_idx, subset)
             self.time_steps[env_ids] = subset
+
+        if rewind is not None and rewind.any():
+            back = torch.randint(*self.motion_cfg.rewind_steps_range, (n,), device=self.device)
+            rewound = (prev_time_steps - back).clamp(min=self.motion.motion_start_idx[prev_motion_ids])
+            self.motion_ids[env_ids] = torch.where(rewind, prev_motion_ids, self.motion_ids[env_ids])
+            self.time_steps[env_ids] = torch.where(rewind, rewound, self.time_steps[env_ids])
+            start_idx = self.motion.motion_start_idx[self.motion_ids[env_ids]]
+            end_idx = self.motion.motion_end_idx[self.motion_ids[env_ids]]
 
         # If the motion is at the last timestep, set it to the second last timestep;
         # Otherwise, update_tasks_callback will advance the timestep to the next timestep -> out of bounds error.
