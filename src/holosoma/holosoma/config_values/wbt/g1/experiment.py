@@ -279,6 +279,19 @@ g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands = replace(
     reward=reward.g1_29dof_wbt_reward_hybrid_object_hands,
 )
 
+# Same, with (track envs) the robot held to the reference's place in the world (anchor reward sigma 0.15 m, termination
+# at 0.3 m) and a wide hand term, and the hands' place on the object observed by actor and critic.
+g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands = replace(
+    g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands,
+    training=replace(
+        g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands.training,
+        name="g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands",
+    ),
+    observation=observation.g1_29dof_wbt_observation_hybrid_multi_object_future_hands,
+    reward=reward.g1_29dof_wbt_reward_hybrid_object_anchor_hands,
+    termination=termination.g1_29dof_wbt_termination_hybrid_object_persistent_anchor,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,

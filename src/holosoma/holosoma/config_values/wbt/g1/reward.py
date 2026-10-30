@@ -212,11 +212,29 @@ g1_29dof_wbt_reward_hybrid_object_hands = RewardManagerCfg(
     }
 )
 
+# Same, with (track envs) the robot pulled to the reference's place in the world (anchor sigma 0.15 m instead of 0.3 m)
+# and a second, wide hand term (sigma 0.3 m): the robot drifts 10-40 cm before the lift, where the sigma 0.1 m hand term
+# gives almost no gradient.
+g1_29dof_wbt_reward_hybrid_object_anchor_hands = RewardManagerCfg(
+    terms={
+        **g1_29dof_wbt_reward_hybrid_object_hands.terms,
+        "motion_global_ref_position_error_exp": replace(
+            g1_29dof_wbt_reward_hybrid_object_hands.terms["motion_global_ref_position_error_exp"],
+            params={**g1_29dof_wbt_reward_hybrid_object_hands.terms["motion_global_ref_position_error_exp"].params, "sigma": 0.15},
+        ),
+        "hand_object_position_error_exp_wide": replace(
+            g1_29dof_wbt_reward_hybrid_object_hands.terms["hand_object_position_error_exp"],
+            params={**g1_29dof_wbt_reward_hybrid_object_hands.terms["hand_object_position_error_exp"].params, "sigma": 0.3},
+        ),
+    }
+)
+
 __all__ = [
     "g1_29dof_wbt_fast_sac_reward",
     "g1_29dof_wbt_reward",
     "g1_29dof_wbt_reward_hybrid_climb",
     "g1_29dof_wbt_reward_hybrid_object",
+    "g1_29dof_wbt_reward_hybrid_object_anchor_hands",
     "g1_29dof_wbt_reward_hybrid_object_hands",
     "g1_29dof_wbt_reward_w_object",
     "hybrid_goal_object_reached_once_term",

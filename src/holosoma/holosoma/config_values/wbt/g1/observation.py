@@ -420,11 +420,37 @@ g1_29dof_wbt_observation_hybrid_multi_object_future = ObservationManagerCfg(
     },
 )
 
+# Same, with the hands' place on the object for actor and critic: the simulated hands in the object's frame, and (track
+# envs) their error to the reference hands in the reference object's frame.
+HANDS = ["left_wrist_yaw_link", "right_wrist_yaw_link"]
+hand_obs_terms = {
+    name: ObsTermCfg(
+        func=f"holosoma.managers.observation.terms.wbt:{name}", params={"body_names": HANDS}, scale=1.0, noise=0.0
+    )
+    for name in ["hand_obj_pos", "hybrid_hand_obj_pos_error"]
+}
+
+g1_29dof_wbt_observation_hybrid_multi_object_future_hands = ObservationManagerCfg(
+    groups={
+        "actor_obs": replace(
+            actor_obs_hybrid_object_future, terms={**actor_obs_hybrid_object_future.terms, **hand_obs_terms}
+        ),
+        "critic_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=False,
+            history_length=1,
+            history_augmentation=wbt_object_history_1s,
+            terms={**critic_obs_hybrid_multi_object_terms, **obj_future_terms, **hand_obs_terms},
+        ),
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_observation",
     "g1_29dof_wbt_observation_hybrid_climb",
     "g1_29dof_wbt_observation_hybrid_multi_object",
     "g1_29dof_wbt_observation_hybrid_multi_object_future",
+    "g1_29dof_wbt_observation_hybrid_multi_object_future_hands",
     "g1_29dof_wbt_observation_hybrid_object",
     "g1_29dof_wbt_observation_w_object",
 ]
