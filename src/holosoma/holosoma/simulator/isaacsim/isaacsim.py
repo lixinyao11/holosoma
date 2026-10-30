@@ -86,7 +86,7 @@ class IsaacSim(BaseSimulator):
                 solver_type=self.simulator_config.sim.physx.solver_type,
                 max_position_iteration_count=self.simulator_config.sim.physx.num_position_iterations,
                 max_velocity_iteration_count=self.simulator_config.sim.physx.num_velocity_iterations,
-                gpu_max_rigid_patch_count=10 * 2**15,
+                gpu_max_rigid_patch_count=2**20,  # 4096 envs with objects overflow 10 * 2**15 (they need ~400k)
             ),
             # Global physics material, can be overridden by the individual articulation
             # Can be inspected by:
