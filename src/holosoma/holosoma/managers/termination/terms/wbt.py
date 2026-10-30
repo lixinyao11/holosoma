@@ -157,3 +157,31 @@ class BadTrackingZOnlyRelObject(BadTrackingZOnly):
     def bad_object_ori(self, motion_command: MotionCommand) -> torch.Tensor:
         error = quat_error_magnitude(motion_command.object_quat_relative_w, motion_command.simulator_object_quat_w)
         return error > self.bad_object_ori_threshold
+
+
+class BadTrackingZOnlyRelObjectPersistent(BadTrackingZOnlyRelObject):
+    """BadTrackingZOnlyRelObject where the object ends the episode only once its error has stayed above the thresholds
+    for ``object_persist_steps`` consecutive steps (as HDMI's cumulative object terminations), so that a policy that
+    lets the object slip can still catch it again instead of the episode ending at the first bad step."""
+
+    def __init__(self, cfg: TerminationTermCfg, env: WholeBodyTrackingManager) -> None:
+        super().__init__(cfg, env)
+        self.object_persist_steps = cfg.params["object_persist_steps"]
+        self.object_bad_steps = torch.zeros(self.env.num_envs, dtype=torch.long, device=self.env.device)
+
+    def __call__(self, env: Any, **kwargs: Any) -> torch.Tensor:
+        motion_command = self.env.command_manager.get_state("motion_command")
+        bad_tracking = (
+            self.bad_ref_pos(motion_command) | self.bad_ref_ori(motion_command) | self.bad_motion_body_pos(motion_command)
+        )
+        if motion_command.motion.has_object:
+            bad_object = self.bad_object_pos(motion_command) | self.bad_object_ori(motion_command)
+            self.object_bad_steps = torch.where(bad_object, self.object_bad_steps + 1, 0)
+            bad_tracking |= self.object_bad_steps >= self.object_persist_steps
+        return bad_tracking
+
+    def reset(self, env_ids: torch.Tensor | None = None) -> None:
+        if env_ids is None:
+            self.object_bad_steps.zero_()
+        else:
+            self.object_bad_steps[env_ids] = 0

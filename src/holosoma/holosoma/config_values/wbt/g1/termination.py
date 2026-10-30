@@ -60,4 +60,26 @@ g1_29dof_wbt_termination_rel_object = TerminationManagerCfg(
     }
 )
 
-__all__ = ["g1_29dof_wbt_termination", "g1_29dof_wbt_termination_rel_object"]
+# Relative object, checked as HDMI does: the object ends the episode once it has been more than 0.6 m / 1.2 rad off
+# for 5 consecutive steps (instead of 0.25 m / 0.8 rad at once).
+g1_29dof_wbt_termination_rel_object_persistent = TerminationManagerCfg(
+    terms={
+        **g1_29dof_wbt_termination.terms,
+        "bad_tracking": replace(
+            g1_29dof_wbt_termination.terms["bad_tracking"],
+            func="holosoma.managers.termination.terms.wbt:BadTrackingZOnlyRelObjectPersistent",
+            params={
+                **g1_29dof_wbt_termination.terms["bad_tracking"].params,
+                "bad_object_pos_threshold": 0.6,
+                "bad_object_ori_threshold": 1.2,
+                "object_persist_steps": 5,
+            },
+        ),
+    }
+)
+
+__all__ = [
+    "g1_29dof_wbt_termination",
+    "g1_29dof_wbt_termination_rel_object",
+    "g1_29dof_wbt_termination_rel_object_persistent",
+]

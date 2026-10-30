@@ -145,6 +145,25 @@ actor_obs_w_object_state = ObsGroupCfg(
     },
 )
 
+# Same, with the reference object re-anchored to the robot (the target of the relative object reward and termination).
+actor_obs_w_object_rel_state = ObsGroupCfg(
+    concatenate=True,
+    enable_noise=True,
+    history_length=1,
+    terms={
+        **actor_obs_shared.terms,
+        "motion_ref_pos_b": ObsTermCfg(
+            func="holosoma.managers.observation.terms.wbt:motion_ref_pos_b",
+            scale=1.0,
+            noise=0.0,
+        ),
+        **{
+            name: ObsTermCfg(func=f"holosoma.managers.observation.terms.wbt:{name}", scale=1.0, noise=0.0)
+            for name in ["obj_pos_b", "obj_ori_b", "obj_lin_vel_b", "obj_ref_rel_pos_b", "obj_ref_rel_ori_b"]
+        },
+    },
+)
+
 g1_29dof_wbt_observation = ObservationManagerCfg(
     groups={
         "actor_obs": actor_obs_shared,
@@ -197,9 +216,23 @@ g1_29dof_wbt_observation_w_multi_object_state = ObservationManagerCfg(
     },
 )
 
+# Several objects, with an actor that sees the object and the reference object re-anchored to the robot.
+g1_29dof_wbt_observation_w_multi_object_rel_state = ObservationManagerCfg(
+    groups={
+        "actor_obs": actor_obs_w_object_rel_state,
+        "critic_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=False,
+            history_length=1,
+            terms=critic_obs_w_multi_object_terms,
+        ),
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_observation",
     "g1_29dof_wbt_observation_w_multi_object",
+    "g1_29dof_wbt_observation_w_multi_object_rel_state",
     "g1_29dof_wbt_observation_w_multi_object_state",
     "g1_29dof_wbt_observation_w_object",
 ]

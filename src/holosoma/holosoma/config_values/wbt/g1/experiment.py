@@ -200,6 +200,15 @@ g1_29dof_wbt_w_multi_object_rubberhand_relobj = replace(
     termination=termination.g1_29dof_wbt_termination_rel_object,
 )
 
+# The relative object set up as HDMI's object tracking: the actor sees the object and its re-anchored reference, the
+# object ends the episode only when 0.6 m / 1.2 rad off for 5 steps, and smaller root velocity noise at reset.
+g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi = replace(
+    g1_29dof_wbt_w_multi_object_rubberhand_relobj,
+    command=command.g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise,
+    observation=observation.g1_29dof_wbt_observation_w_multi_object_rel_state,
+    termination=termination.g1_29dof_wbt_termination_rel_object_persistent,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -221,6 +230,7 @@ __all__ = [
     "g1_29dof_wbt_w_multi_object",
     "g1_29dof_wbt_w_multi_object_rubberhand",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj",
+    "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi",
     "g1_29dof_wbt_w_multi_object_state",
     "g1_29dof_wbt_w_object",
 ]

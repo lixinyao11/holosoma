@@ -240,6 +240,33 @@ def obj_ref_ori_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     return mat[..., :2].reshape(mat.shape[0], -1)
 
 
+def obj_ref_rel_pos_b(env: WholeBodyTrackingManager) -> torch.Tensor:
+    """Reference object re-anchored to the robot (``object_pos_relative_w``, the target of the relative object terms)
+    in the robot's anchor frame."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    pos, _ = subtract_frame_transforms(
+        motion_command.robot_ref_pos_w,
+        motion_command.robot_ref_quat_w,
+        motion_command.object_pos_relative_w,
+        motion_command.object_quat_relative_w,
+    )
+    return pos.view(env.num_envs, -1)
+
+
+def obj_ref_rel_ori_b(env: WholeBodyTrackingManager) -> torch.Tensor:
+    """Orientation of the re-anchored reference object in the robot's anchor frame (first two rotation-matrix
+    columns)."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    _, ori = subtract_frame_transforms(
+        motion_command.robot_ref_pos_w,
+        motion_command.robot_ref_quat_w,
+        motion_command.object_pos_relative_w,
+        motion_command.object_quat_relative_w,
+    )
+    mat = quaternion_to_matrix(ori, w_last=True)
+    return mat[..., :2].reshape(mat.shape[0], -1)
+
+
 def obj_lin_vel_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     motion_command = _get_motion_command_and_assert_type(env)
     unit_quat = torch.tensor([0.0, 0.0, 0.0, 1.0], device=env.device).unsqueeze(0).repeat(env.num_envs, 1)

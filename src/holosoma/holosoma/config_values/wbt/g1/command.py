@@ -110,9 +110,32 @@ g1_29dof_wbt_command_w_multi_object_exact_object = replace(
     },
 )
 
+# Exact object, and the root velocity noise at reset of HDMI (0.2 m/s, 0.5 rad/s instead of 0.5 m/s, 0.52-0.78 rad/s):
+# the object is reset at rest relative to the reference hands, so a root velocity kick moves the hands off it.
+g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise = replace(
+    g1_29dof_wbt_command,
+    setup_terms={
+        "motion_command": CommandTermCfg(
+            func="holosoma.managers.command.terms.wbt:MotionCommand",
+            params={
+                "motion_config": replace(
+                    motion_config_w_multi_object,
+                    noise_to_initial_pose=replace(
+                        init_pose_config,
+                        object_pos=[0.0, 0.0, 0.0],
+                        root_lin_vel=[0.2, 0.2, 0.2],
+                        root_ang_vel=[0.5, 0.5, 0.5],
+                    ),
+                ),
+            },
+        )
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_command",
     "g1_29dof_wbt_command_w_multi_object",
     "g1_29dof_wbt_command_w_multi_object_exact_object",
+    "g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise",
     "g1_29dof_wbt_command_w_object",
 ]
