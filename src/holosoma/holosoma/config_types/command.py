@@ -104,6 +104,9 @@ class MotionConfig:
     the scene object's ``urdf_files``. Environment e tracks variant ``e % N`` (the others stay parked) and only samples
     clips of that object."""
 
+    ignore_object: bool = False
+    """Track the robot only, ignoring the object poses in the motion files (robot-only training on object clips)."""
+
     # motion sampling related
     use_adaptive_timesteps_sampler: bool = False
     """During training, whether to prioritize training on motion segments where the robot fails often."""

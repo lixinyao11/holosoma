@@ -607,6 +607,8 @@ class MotionCommand(CommandTermBase):
                 robot_joint_names,
                 device=self.device,
             )
+        if self.motion_cfg.ignore_object:
+            self.motion.has_object = False
 
         # Store body and joint indexes for interpolation
         self._body_indexes_in_motion = self.motion._body_indexes
