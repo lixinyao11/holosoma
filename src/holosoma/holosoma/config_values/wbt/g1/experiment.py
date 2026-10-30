@@ -257,6 +257,18 @@ g1_29dof_wbt_hybrid_multi_object_future_rubberhand = replace(
     ),
 )
 
+# Same, with the objects checked as HDMI does (0.6 m / 1.2 rad for 5 consecutive steps) and reset exactly to their
+# reference pose.
+g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist = replace(
+    g1_29dof_wbt_hybrid_multi_object_future_rubberhand,
+    training=replace(
+        g1_29dof_wbt_hybrid_multi_object_future_rubberhand.training,
+        name="g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist",
+    ),
+    command=command.g1_29dof_wbt_command_hybrid_multi_object_exact_object,
+    termination=termination.g1_29dof_wbt_termination_hybrid_object_persistent,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -290,6 +302,7 @@ __all__ = [
     "g1_29dof_wbt_hybrid_multi_object",
     "g1_29dof_wbt_hybrid_multi_object_future",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand",
+    "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist",
     "g1_29dof_wbt_hybrid_object",
     "g1_29dof_wbt_w_object",
 ]

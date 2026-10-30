@@ -85,8 +85,26 @@ g1_29dof_wbt_termination_hybrid_object = TerminationManagerCfg(
     }
 )
 
+# Objects checked as HDMI does: an object check (track: 0.6 m / 1.2 rad; gen: as above) ends the episode only after 5
+# consecutive bad steps.
+g1_29dof_wbt_termination_hybrid_object_persistent = TerminationManagerCfg(
+    terms={
+        **g1_29dof_wbt_termination_hybrid_object.terms,
+        "bad_tracking": TerminationTermCfg(
+            func=g1_29dof_wbt_termination_hybrid_object.terms["bad_tracking"].func,
+            params={
+                **g1_29dof_wbt_termination_hybrid_object.terms["bad_tracking"].params,
+                "bad_object_pos_threshold": 0.6,
+                "bad_object_ori_threshold": 1.2,
+                "object_persist_steps": 5,
+            },
+        ),
+    }
+)
+
 __all__ = [
     "g1_29dof_wbt_termination",
     "g1_29dof_wbt_termination_hybrid_climb",
     "g1_29dof_wbt_termination_hybrid_object",
+    "g1_29dof_wbt_termination_hybrid_object_persistent",
 ]

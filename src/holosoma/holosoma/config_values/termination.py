@@ -6,6 +6,7 @@ from holosoma.config_values.wbt.g1.termination import (
     g1_29dof_wbt_termination,
     g1_29dof_wbt_termination_hybrid_climb,
     g1_29dof_wbt_termination_hybrid_object,
+    g1_29dof_wbt_termination_hybrid_object_persistent,
 )
 
 none = None
@@ -17,4 +18,5 @@ DEFAULTS = {
     "g1_29dof_wbt": g1_29dof_wbt_termination,
     "g1_29dof_wbt_hybrid_climb": g1_29dof_wbt_termination_hybrid_climb,
     "g1_29dof_wbt_hybrid_object": g1_29dof_wbt_termination_hybrid_object,
+    "g1_29dof_wbt_hybrid_object_persistent": g1_29dof_wbt_termination_hybrid_object_persistent,
 }

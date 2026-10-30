@@ -230,6 +230,10 @@ class HybridBadTracking(BadTracking):
         self.gen_bad_ref_pos_xyz_threshold = cfg.params.get("gen_bad_ref_pos_xyz_threshold", 1.0e6)
         self.gen_bad_object_pos_z_threshold = cfg.params.get("gen_bad_object_pos_z_threshold")
         self.gen_bad_object_ori_threshold = cfg.params.get("gen_bad_object_ori_threshold")
+        # consecutive steps an object check must fail before it ends the episode (1: at the first bad step), as
+        # HDMI's cumulative object terminations: a policy that lets the object slip can still catch it again
+        self.object_persist_steps = cfg.params.get("object_persist_steps", 1)
+        self.object_bad_steps = torch.zeros(self.env.num_envs, dtype=torch.long, device=self.env.device)
 
     def gen_bad_ref_pos_z(self, motion_command: MotionCommand) -> torch.Tensor:
         """Terminate gen envs if robot torso z deviates too much from the current-step reference z."""
@@ -287,6 +291,12 @@ class HybridBadTracking(BadTracking):
         gen_ref_pos_xyz = self.gen_bad_ref_pos_xyz(motion_command) & gen_env_mask
         gen_object_pos_z = self.gen_bad_object_pos_z(motion_command) & gen_env_mask
         gen_object_ori = self.gen_bad_object_ori(motion_command) & gen_env_mask
+        if self.object_persist_steps > 1:
+            object_bad = bad_object_pos | bad_object_ori | gen_object_pos_z | gen_object_ori
+            self.object_bad_steps = torch.where(object_bad, self.object_bad_steps + 1, 0)
+            persisted = self.object_bad_steps >= self.object_persist_steps
+            bad_object_pos, bad_object_ori = bad_object_pos & persisted, bad_object_ori & persisted
+            gen_object_pos_z, gen_object_ori = gen_object_pos_z & persisted, gen_object_ori & persisted
         terminated = (
             bad_ref_pos
             | bad_ref_ori
@@ -314,3 +324,9 @@ class HybridBadTracking(BadTracking):
         }
 
         return terminated
+
+    def reset(self, env_ids: torch.Tensor | None = None) -> None:
+        if env_ids is None:
+            self.object_bad_steps.zero_()
+        else:
+            self.object_bad_steps[env_ids] = 0

@@ -237,11 +237,20 @@ hybrid_multi_object_motion_config = replace(
 )
 g1_29dof_wbt_command_hybrid_multi_object = _hybrid_command(hybrid_multi_object_motion_config)
 
+# Same, with the object reset exactly to its reference pose (no position noise).
+g1_29dof_wbt_command_hybrid_multi_object_exact_object = _hybrid_command(
+    replace(
+        hybrid_multi_object_motion_config,
+        noise_to_initial_pose=replace(hybrid_multi_object_motion_config.noise_to_initial_pose, object_pos=[0.0, 0.0, 0.0]),
+    )
+)
+
 __all__ = [
     "g1_29dof_wbt_command",
     "g1_29dof_wbt_command_climb",
     "g1_29dof_wbt_command_hybrid_climb",
     "g1_29dof_wbt_command_hybrid_multi_object",
+    "g1_29dof_wbt_command_hybrid_multi_object_exact_object",
     "g1_29dof_wbt_command_hybrid_object",
     "g1_29dof_wbt_command_w_object",
     "hybrid_climb_cfg",
