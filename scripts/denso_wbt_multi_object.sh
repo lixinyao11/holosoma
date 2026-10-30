@@ -31,6 +31,9 @@ for o in $OBJECTS; do
   urdfs+=("'$DATA/$o/$o.urdf'")
 done
 source "$SCRIPT_DIR/source_isaacsim_setup.sh"
-python "$SCRIPT_DIR/../src/holosoma/holosoma/train_agent.py" "exp:$EXP" "$@" \
+# NPROC > 1: one training process per GPU (torchrun); --training.num-envs is then the total over all GPUs
+LAUNCH=(python)
+(( ${NPROC:-1} > 1 )) && LAUNCH=(python -m torch.distributed.run --standalone --nproc_per_node="$NPROC")
+"${LAUNCH[@]}" "$SCRIPT_DIR/../src/holosoma/holosoma/train_agent.py" "exp:$EXP" "$@" \
   --command.setup-terms.motion-command.params.motion-config.motion-dir="$(IFS=,; echo "${dirs[*]}")" \
   --scene.rigid-objects.object.urdf-files "[$(IFS=,; echo "${urdfs[*]}")]"     # Python list literal (holosoma's tyro)
