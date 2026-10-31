@@ -243,18 +243,15 @@ g1_29dof_wbt_hybrid_multi_object_future = replace(
 )
 
 # Same, with the G1's rubber hands as collision bodies: the hands the Denso clips were retargeted with (the half
-# sphere ends ~8 cm short of the rubber hand's fingertips, so retargeted contacts are lost).
+# sphere ends ~8 cm short of the rubber hand's fingertips, so retargeted contacts are lost), on the newer G1 hardware
+# (robot.g1_mode15: 7520-22 hip pitch, 5010 wrist pitch / yaw). Runs started before the switch used the older hardware
+# (g1/main_mesh_collision_rubberhand.urdf, mode-5 motors); their saved configs keep it.
 g1_29dof_wbt_hybrid_multi_object_future_rubberhand = replace(
     g1_29dof_wbt_hybrid_multi_object_future,
     training=replace(
         g1_29dof_wbt_hybrid_multi_object_future.training, name="g1_29dof_wbt_hybrid_multi_object_future_rubberhand"
     ),
-    robot=replace(
-        g1_29dof_wbt_hybrid_multi_object_future.robot,
-        asset=replace(
-            g1_29dof_wbt_hybrid_multi_object_future.robot.asset, urdf_file="g1/main_mesh_collision_rubberhand.urdf"
-        ),
-    ),
+    robot=robot.g1_mode15(g1_29dof_wbt_hybrid_multi_object_future.robot),
 )
 
 # Same, with the objects checked as HDMI does (0.6 m / 1.2 rad for 5 consecutive steps) and reset exactly to their
