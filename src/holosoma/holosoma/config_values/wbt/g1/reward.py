@@ -184,12 +184,32 @@ g1_29dof_wbt_reward_w_object_rel_anchor_hands = RewardManagerCfg(
     }
 )
 
+# Same, with wide anchor terms (orientation sigma 1.0 rad, position sigma 0.5 m, weight 0.5 each) next to the narrow
+# ones: before the lift the robot's heading drifts 40-120 deg off the reference, where the sigma 0.4 rad term is ~0
+# and gives no pull back.
+g1_29dof_wbt_reward_w_object_rel_anchor_hands_wide = RewardManagerCfg(
+    terms={
+        **g1_29dof_wbt_reward_w_object_rel_anchor_hands.terms,
+        "motion_global_ref_orientation_error_exp_wide": replace(
+            g1_29dof_wbt_reward_w_object_rel_anchor_hands.terms["motion_global_ref_orientation_error_exp"],
+            params={"sigma": 1.0},
+            weight=0.5,
+        ),
+        "motion_global_ref_position_error_exp_wide": replace(
+            g1_29dof_wbt_reward_w_object_rel_anchor_hands.terms["motion_global_ref_position_error_exp"],
+            params={"sigma": 0.5},
+            weight=0.5,
+        ),
+    }
+)
+
 __all__ = [
     "g1_29dof_wbt_fast_sac_reward",
     "g1_29dof_wbt_reward",
     "g1_29dof_wbt_reward_w_object",
     "g1_29dof_wbt_reward_w_object_rel",
     "g1_29dof_wbt_reward_w_object_rel_anchor_hands",
+    "g1_29dof_wbt_reward_w_object_rel_anchor_hands_wide",
     "g1_29dof_wbt_reward_w_object_rel_global_root",
     "g1_29dof_wbt_reward_w_object_rel_global_root_hands",
 ]

@@ -239,6 +239,15 @@ g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind = replace
     command=command.g1_29dof_wbt_command_w_multi_object_exact_object_low_vel_noise_rewind,
 )
 
+# Same, with wide anchor terms (the robot's heading and place pulled back from far off the reference) and the HIL
+# branch's entropy coefficient 0.002 (with 0.005 the policy noise grows and the success rate plateaus).
+_rewind_algo = g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind.algo
+g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind_wide = replace(
+    g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind,
+    algo=replace(_rewind_algo, config=replace(_rewind_algo.config, entropy_coef=0.002)),
+    reward=reward.g1_29dof_wbt_reward_w_object_rel_anchor_hands_wide,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -264,6 +273,7 @@ __all__ = [
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind",
+    "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind_wide",
     "g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_global_hands",
     "g1_29dof_wbt_w_multi_object_state",
     "g1_29dof_wbt_w_object",
