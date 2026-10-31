@@ -248,16 +248,16 @@ g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind_wide = re
     reward=reward.g1_29dof_wbt_reward_w_object_rel_anchor_hands_wide,
 )
 
-# Same as rewind with entropy 0.002, with HDMI's look ahead (reference anchor and joints 1-16 steps ahead) and a
-# 5-step proprioception history for the actor.
-_future_mods = _rewind_algo.config.module_dict
+# Same as wide, with HDMI's look ahead (reference anchor and joints 1-16 steps ahead) and a 5-step proprioception
+# history for the actor.
+_wide_algo = g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind_wide.algo
+_future_mods = _wide_algo.config.module_dict
 g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind_future = replace(
-    g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind,
+    g1_29dof_wbt_w_multi_object_rubberhand_relobj_hdmi_anchor_hands_rewind_wide,
     algo=replace(
-        _rewind_algo,
+        _wide_algo,
         config=replace(
-            _rewind_algo.config,
-            entropy_coef=0.002,
+            _wide_algo.config,
             module_dict=replace(
                 _future_mods, actor=replace(_future_mods.actor, input_dim=["actor_obs", "actor_hist_obs"])
             ),
