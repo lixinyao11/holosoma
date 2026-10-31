@@ -24,6 +24,9 @@ class ObsTermCfg:
     noise: float = 0.0
     """Noise magnitude applied before scaling when the group enables noise."""
 
+    history_offsets: tuple[int, ...] = ()
+    """Per-term policy-step history, in output order (0=current); empty uses group history."""
+
     clip: tuple[float, float] | None = None
     """Optional min/max clip bounds applied after scaling."""
 

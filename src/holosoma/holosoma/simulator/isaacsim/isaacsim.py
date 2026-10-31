@@ -401,8 +401,20 @@ class IsaacSim(BaseSimulator):
             self._height_scanner = RayCaster(height_scanner_config)
             self.scene.sensors["height_scanner"] = self._height_scanner
 
+        # Author source filters before physics replication, then resolve targets
+        # on every clone so no relationship points at another environment.
+        if robot_asset_cfg.collision_exclusions:
+            from holosoma.utils.collision_exclusions import apply_usd_collision_exclusions
+            apply_usd_collision_exclusions(self.sim.stage, ["/World/envs/env_0/Robot"],
+                                           robot_asset_cfg.collision_exclusions)
+
         # clone, filter, and replicate
         self.scene.clone_environments(copy_from_source=False)
+
+        if robot_asset_cfg.collision_exclusions:
+            apply_usd_collision_exclusions(self.sim.stage,
+                [f"/World/envs/env_{i}/Robot" for i in range(self.training_config.num_envs)],
+                robot_asset_cfg.collision_exclusions)
 
         if hasattr(self.simulator_config.scene, "usd_file"):
             # Activate collisions with the entire scene

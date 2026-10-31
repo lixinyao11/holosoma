@@ -8,3 +8,4 @@ recursive-include holosoma *.usd
 recursive-include holosoma *.usda
 recursive-include holosoma *.usdc
 recursive-include holosoma *.png
+recursive-include holosoma/data/robots/g1_mode15 *.json

@@ -96,10 +96,12 @@ def _obj_vertices(mesh_path: Path) -> torch.Tensor:
     return torch.tensor(vertices, dtype=torch.float64)
 
 
-def load_urdf_collision_bounds(urdf_path: str) -> tuple[list[float], list[float]]:
-    """Compute the canonical AABB from OBJ meshes or boxes in a URDF's collision elements."""
+def load_urdf_collision_vertices(urdf_path: str, *, single_link: bool = False) -> torch.Tensor:
+    """Read collision vertices in link coordinates; strict single-link mode supports ground checks."""
     resolved_urdf_path = Path(resolve_data_file_path(urdf_path))
     root = ET.parse(resolved_urdf_path).getroot()
+    if single_link and (len(root.findall("link")) != 1 or root.findall("joint")):
+        raise ValueError("Ground-height reward requires a single rigid link URDF.")
     collision_vertices: list[torch.Tensor] = []
 
     for collision in root.findall(".//collision"):
@@ -149,7 +151,12 @@ def load_urdf_collision_bounds(urdf_path: str) -> tuple[list[float], list[float]
 
     if not collision_vertices:
         raise ValueError(f"URDF contains no supported collision geometry: {resolved_urdf_path}")
-    vertices = torch.cat(collision_vertices, dim=0)
+    return torch.cat(collision_vertices, dim=0)
+
+
+def load_urdf_collision_bounds(urdf_path: str) -> tuple[list[float], list[float]]:
+    """Compute the canonical AABB from OBJ meshes or boxes in a URDF's collision elements."""
+    vertices = load_urdf_collision_vertices(urdf_path)
     return vertices.amin(dim=0).tolist(), vertices.amax(dim=0).tolist()
 
 

@@ -68,8 +68,14 @@ class ObservationManager:
                     # Stateless function
                     self._term_funcs[group_name][term_name] = func
 
-                # Initialize history buffer if needed (using group-level history_length)
-                if group_cfg.history_length > 1:
+                if term_cfg.history_offsets:
+                    offsets = term_cfg.history_offsets
+                    if any(o < 0 for o in offsets) or len(set(offsets)) != len(offsets):
+                        raise ValueError("history_offsets must be distinct nonnegative policy-step offsets")
+                    if group_cfg.history_length != 1:
+                        raise ValueError("Per-term offsets cannot be combined with group history_length")
+                    self._history_buffers[group_name][term_name] = deque(maxlen=max(offsets) + 1)
+                elif group_cfg.history_length > 1:
                     self._history_buffers[group_name][term_name] = deque(maxlen=group_cfg.history_length)
 
             self._initialize_history_augmentation(group_name, group_cfg)
@@ -205,7 +211,7 @@ class ObservationManager:
             current_tensors[term_name] = obs
 
             # 5. Handle history buffering
-            if group_cfg.history_length > 1:
+            if term_cfg.history_offsets or group_cfg.history_length > 1:
                 obs = self._apply_history(group_name, term_name, obs, group_cfg, modify_buffer=modify_history)
 
             obs_tensors[term_name] = obs
@@ -323,6 +329,15 @@ class ObservationManager:
             Historical observations with shape ``[num_envs, obs_dim * history_length]``.
         """
         buffer = self._history_buffers[group_name][term_name]
+        offsets = group_cfg.terms[term_name].history_offsets
+        if offsets:
+            if modify_buffer:
+                buffer.append(obs)
+                history = list(buffer)
+            else:
+                history = (list(buffer) + [obs])[-(max(offsets) + 1):]
+            zero = torch.zeros_like(obs)
+            return torch.cat([history[-o - 1] if len(history) > o else zero for o in offsets], dim=-1)
 
         if modify_buffer:
             # Add current observation to buffer
@@ -449,7 +464,9 @@ class ObservationManager:
                     term_dim = obs.shape[1]
 
                     # Account for history at group level
-                    if group_cfg.history_length > 1:
+                    if term_cfg.history_offsets:
+                        term_dim *= len(term_cfg.history_offsets)
+                    elif group_cfg.history_length > 1:
                         term_dim *= group_cfg.history_length
 
                     total_dim += term_dim
@@ -460,6 +477,7 @@ class ObservationManager:
                 # Return dict of individual dimensions
                 term_dims: dict[str, int] = {
                     term_name: self._compute_term(group_name, term_name, term_cfg).shape[1]
+                    * (len(term_cfg.history_offsets) if term_cfg.history_offsets else 1)
                     for term_name, term_cfg in group_cfg.terms.items()
                 }
                 if self._history_augmentation_enabled(group_cfg):

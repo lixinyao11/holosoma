@@ -1241,8 +1241,9 @@ class MotionCommand(CommandTermBase):
             self.object_name = "object_00" if self.motion_cfg.motion_dir_object_groups else "object"
             self.object_indices_in_simulator = self._env.simulator.get_actor_indices(self.object_name, env_ids=None)
 
-            assert self._env.simulator.get_simulator_type() == SimulatorType.ISAACSIM, (
-                "Object is only supported in IsaacSim"
+            assert (self._env.simulator.get_simulator_type() == SimulatorType.ISAACSIM
+                    or getattr(self._env.simulator, "supports_object_states", False)), (
+                "Backend must support object states"
             )
 
         # 3.1 object groups: environment e holds object asset e % num_groups and only samples that object's clips
@@ -2849,8 +2850,9 @@ class MotionCommand(CommandTermBase):
     ) -> dict[str, torch.Tensor]:
         """Capture body states by temporarily setting the robot state in the simulator."""
         simulator = self._env.simulator
-        assert simulator.get_simulator_type() == SimulatorType.ISAACSIM, (
-            "Default-pose interpolation only supports IsaacSim; IsaacGym write_state_updates does not run FK."
+        assert (simulator.get_simulator_type() == SimulatorType.ISAACSIM
+                or getattr(simulator, "supports_object_states", False)), (
+            "Default-pose interpolation requires forward kinematics after state writes."
         )
         env_id = 0
         env_origin = simulator.scene.env_origins[env_id].to(self.device)

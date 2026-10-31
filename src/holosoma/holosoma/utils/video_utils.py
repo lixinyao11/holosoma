@@ -1,3 +1,5 @@
+import json
+import os
 import subprocess
 import time
 import uuid
@@ -153,6 +155,10 @@ def create_video(video_frames, fps, save_dir, output_format="mp4", wandb_logging
     Path | None
         Path to the saved video file, or None if saving failed.
     """
+    # Distributed training publishes a single rollout video from global rank zero.
+    if int(os.environ.get("WORLD_SIZE", "1")) > 1 and int(os.environ.get("RANK", "0")) != 0:
+        return None
+
     h, w = video_frames.shape[1:3]
 
     # Ensure the directory exists
@@ -170,8 +176,11 @@ def create_video(video_frames, fps, save_dir, output_format="mp4", wandb_logging
         cleanup_files = True
     else:
         # Local path: create permanent files
-        final_video = save_dir / f"{recording_prefix}{timestamp}.mp4"
-        temp_raw = save_dir / f"{recording_prefix}temp_raw_{timestamp}.mp4"
+        # Distinct per rank AND per call, including recordings made in the same second.
+        rank = os.environ.get("RANK", os.environ.get("LOCAL_RANK", "single"))
+        local_id = f"{timestamp}_rank{rank}_{uuid.uuid4().hex}"
+        final_video = save_dir / f"{recording_prefix}{local_id}.mp4"
+        temp_raw = save_dir / f"{recording_prefix}temp_raw_{local_id}.mp4"
         cleanup_files = False
 
     temp_files_to_cleanup = []
@@ -209,7 +218,18 @@ def create_video(video_frames, fps, save_dir, output_format="mp4", wandb_logging
                 str(final_video),
             ]
 
-            result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True, check=True)
+            try:
+                result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True, check=True)
+            except subprocess.CalledProcessError as exc:
+                # Keep the existing fail-fast behavior, but preserve the actual encoder error.
+                error_path = final_video.with_suffix(".ffmpeg-error.json")
+                error = {"command": ffmpeg_cmd, "returncode": exc.returncode,
+                         "stdout": exc.stdout, "stderr": exc.stderr,
+                         "rank": os.environ.get("RANK", os.environ.get("LOCAL_RANK", "single"))}
+                error_path.write_text(json.dumps(error, indent=2) + "\n")
+                logger.error("[VIDEO] FFmpeg failed rc={}; command={}; stderr={}; evidence={}",
+                             exc.returncode, ffmpeg_cmd, exc.stderr, error_path)
+                raise
             if result.returncode != 0:
                 logger.warning(f"[VIDEO] FFmpeg conversion failed: {result.stderr}")
                 logger.info("[VIDEO] Falling back to mp4v format (may have browser compatibility issues)")
