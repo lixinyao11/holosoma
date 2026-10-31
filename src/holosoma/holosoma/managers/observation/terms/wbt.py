@@ -158,6 +158,54 @@ def motion_ref_ori_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     return mat[..., :2].reshape(mat.shape[0], -1)
 
 
+def _motion_future_steps(env: WholeBodyTrackingManager, frames: list[int]) -> torch.Tensor:
+    """Motion frame indices ``frames`` steps ahead of each environment's time step, held at the clip's last frame:
+    [num_envs, K]."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    offsets = torch.as_tensor(frames, dtype=torch.long, device=env.device)
+    last = motion_command.motion.motion_end_idx[motion_command.motion_ids] - 1
+    return torch.minimum(motion_command.time_steps[:, None] + offsets[None, :], last[:, None])
+
+
+def _motion_future_ref_poses_b(env: WholeBodyTrackingManager, frames: list[int]) -> tuple[torch.Tensor, torch.Tensor]:
+    """Reference anchor poses ``frames`` steps ahead in the robot's anchor frame: positions [num_envs, K, 3],
+    quaternions [num_envs, K, 4]."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    steps = _motion_future_steps(env, frames)
+    k = len(frames)
+    idx = motion_command.ref_body_index
+    pos_w = motion_command.motion.body_pos_w[steps, idx] + env.simulator.scene.env_origins[:, None, :]
+    quat_w = motion_command.motion.body_quat_w[steps, idx]
+    pos_b, quat_b = subtract_frame_transforms(
+        motion_command.robot_ref_pos_w[:, None, :].expand(-1, k, -1).reshape(-1, 3),
+        motion_command.robot_ref_quat_w[:, None, :].expand(-1, k, -1).reshape(-1, 4),
+        pos_w.reshape(-1, 3),
+        quat_w.reshape(-1, 4),
+    )
+    return pos_b.view(env.num_envs, k, 3), quat_b.view(env.num_envs, k, 4)
+
+
+def motion_future_ref_pos_b(env: WholeBodyTrackingManager, frames: list[int]) -> torch.Tensor:
+    """Reference anchor positions ``frames`` steps ahead in the robot's anchor frame (3 values per frame): where the
+    reference goes next, not only how far off it is now."""
+    pos_b, _ = _motion_future_ref_poses_b(env, frames)
+    return pos_b.reshape(env.num_envs, -1)
+
+
+def motion_future_ref_ori_b(env: WholeBodyTrackingManager, frames: list[int]) -> torch.Tensor:
+    """Reference anchor orientations ``frames`` steps ahead in the robot's anchor frame (first two rotation-matrix
+    columns, 6 values per frame)."""
+    _, quat_b = _motion_future_ref_poses_b(env, frames)
+    mat = quaternion_to_matrix(quat_b.reshape(-1, 4), w_last=True)
+    return mat[..., :2].reshape(env.num_envs, -1)
+
+
+def motion_future_joint_pos(env: WholeBodyTrackingManager, frames: list[int]) -> torch.Tensor:
+    """Reference joint positions ``frames`` steps ahead (num_dof values per frame)."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    return motion_command.motion.joint_pos[_motion_future_steps(env, frames)].reshape(env.num_envs, -1)
+
+
 def robot_body_pos_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     motion_command = _get_motion_command_and_assert_type(env)
 

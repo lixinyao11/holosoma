@@ -267,11 +267,50 @@ g1_29dof_wbt_observation_w_multi_object_rel_state_hands = ObservationManagerCfg(
     },
 )
 
+# Same, with HDMI's look ahead and history for the actor: the reference anchor pose and joints FUTURE_FRAMES steps
+# ahead (HDMI: [-4, -2, 0, 1, 2, 3, 8, 16]), and the last 5 steps of proprioception (HDMI: [0..4, 8, 16]) in a second
+# actor group; the critic also gets the look ahead.
+FUTURE_FRAMES = [1, 2, 4, 8, 16]
+future_ref_terms = {
+    name: ObsTermCfg(
+        func=f"holosoma.managers.observation.terms.wbt:{name}", params={"frames": FUTURE_FRAMES}, scale=1.0, noise=0.0
+    )
+    for name in ["motion_future_ref_pos_b", "motion_future_ref_ori_b", "motion_future_joint_pos"]
+}
+g1_29dof_wbt_observation_w_multi_object_rel_state_hands_future = ObservationManagerCfg(
+    groups={
+        "actor_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=True,
+            history_length=1,
+            terms={**actor_obs_w_object_rel_state_hands.terms, **future_ref_terms},
+        ),
+        "actor_hist_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=True,
+            history_length=5,
+            terms={
+                "projected_gravity": ObsTermCfg(
+                    func="holosoma.managers.observation.terms.wbt:projected_gravity", scale=1.0, noise=0.05
+                ),
+                **{name: actor_obs_shared.terms[name] for name in ["base_ang_vel", "dof_pos", "dof_vel", "actions"]},
+            },
+        ),
+        "critic_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=False,
+            history_length=1,
+            terms={**critic_obs_w_multi_object_ref_hands_terms, **future_ref_terms},
+        ),
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_observation",
     "g1_29dof_wbt_observation_w_multi_object",
     "g1_29dof_wbt_observation_w_multi_object_rel_state",
     "g1_29dof_wbt_observation_w_multi_object_rel_state_hands",
+    "g1_29dof_wbt_observation_w_multi_object_rel_state_hands_future",
     "g1_29dof_wbt_observation_w_multi_object_state",
     "g1_29dof_wbt_observation_w_object",
 ]
