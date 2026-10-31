@@ -182,13 +182,12 @@ g1_29dof_wbt_w_multi_object_state = replace(
     observation=observation.g1_29dof_wbt_observation_w_multi_object_state,
 )
 
-# Same as g1_29dof_wbt_w_multi_object, with the G1's rubber hands (robot g1_29dof_w_object_rubberhand).
+# Same as g1_29dof_wbt_w_multi_object, with the G1's rubber hands on the newer G1 hardware (robot
+# g1_29dof_mode15_w_object_rubberhand: 7520-22 hip pitch, 5010 wrist pitch / yaw). Runs started before the switch used
+# the older hardware (g1_29dof_w_object_rubberhand, g1/main_mesh_collision_rubberhand.urdf); their saved configs keep it.
 g1_29dof_wbt_w_multi_object_rubberhand = replace(
     g1_29dof_wbt_w_multi_object,
-    robot=replace(
-        g1_29dof_wbt_w_multi_object.robot,
-        asset=replace(g1_29dof_wbt_w_multi_object.robot.asset, urdf_file="g1/main_mesh_collision_rubberhand.urdf"),
-    ),
+    robot=robot.g1_mode15(g1_29dof_wbt_w_multi_object.robot),
 )
 
 # Rubber hands, and the object tracked and checked relative to the robot (as the bodies are) and reset exactly to its

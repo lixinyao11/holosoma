@@ -1127,9 +1127,51 @@ g1_29dof_w_object_rubberhand = replace(
     asset=replace(g1_29dof_w_object.asset, urdf_file="g1/main_mesh_collision_rubberhand.urdf"),
 )
 
+# The newer G1 hardware ("mode 15", the one HDMI trains): hip pitch on a 7520-22 like hip roll / knee (139 Nm, 20 rad/s)
+# instead of a 7520-14, and 5010 wrist pitch / yaw motors (13.4 Nm, 27 rad/s) instead of 4010s, with their heavier
+# wrist pitch link and 5 mm longer wrist (g1/main_mesh_collision_rubberhand_mode15.urdf, from Unitree's
+# g1-mode_13_15.urdf). Gains follow the same 10 Hz / damping ratio 2 rule from the reflected motor inertia (armature),
+# and every joint gets 0.01 Nm of static friction (HDMI's frictionloss). Ankles and waist roll / pitch stay at 50 Nm /
+# 37 rad/s as in HDMI's actuators (that URDF lists 35 Nm / 30 rad/s).
+_MODE15_MOTORS = {  # joint name suffix: (effort limit, velocity limit, armature, stiffness, damping)
+    "hip_pitch": (139.0, 20.0, 0.025101925, 99.098427777, 6.308801854),  # 7520-22
+    "wrist_pitch": (13.4, 27.0, 0.0021812, 8.611032447, 0.548195352),  # 5010
+    "wrist_yaw": (13.4, 27.0, 0.0021812, 8.611032447, 0.548195352),  # 5010
+}
+
+
+def g1_mode15(cfg: RobotConfig, urdf_file: str = "g1/main_mesh_collision_rubberhand_mode15.urdf") -> RobotConfig:
+    """``cfg`` (a G1 29-DoF config) with the mode-15 motors and ``urdf_file``."""
+
+    def per_dof(values: list[float], k: int) -> list[float]:
+        out = list(values)
+        for i, name in enumerate(cfg.dof_names):
+            for suffix, motor in _MODE15_MOTORS.items():
+                if name.endswith(f"{suffix}_joint"):
+                    out[i] = motor[k]
+        return out
+
+    return replace(
+        cfg,
+        dof_effort_limit_list=per_dof(cfg.dof_effort_limit_list, 0),
+        dof_vel_limit_list=per_dof(cfg.dof_vel_limit_list, 1),
+        dof_armature_list=per_dof(cfg.dof_armature_list, 2),
+        dof_joint_friction_list=[0.01] * len(cfg.dof_names),
+        control=replace(
+            cfg.control,
+            stiffness={**cfg.control.stiffness, **{k: m[3] for k, m in _MODE15_MOTORS.items()}},
+            damping={**cfg.control.damping, **{k: m[4] for k, m in _MODE15_MOTORS.items()}},
+        ),
+        asset=replace(cfg.asset, urdf_file=urdf_file),
+    )
+
+
+g1_29dof_mode15_w_object_rubberhand = g1_mode15(g1_29dof_w_object_rubberhand)
+
 ROBOT_REGISTRY.add("g1_29dof", g1_29dof)
 ROBOT_REGISTRY.add("t1_29dof_waist_wrist", t1_29dof_waist_wrist)
 ROBOT_REGISTRY.add("g1_29dof_w_object", g1_29dof_w_object)
 ROBOT_REGISTRY.add("g1_29dof_w_object_rubberhand", g1_29dof_w_object_rubberhand)
+ROBOT_REGISTRY.add("g1_29dof_mode15_w_object_rubberhand", g1_29dof_mode15_w_object_rubberhand)
 
 __getattr__ = deprecated_defaults_alias(__name__, ROBOT_REGISTRY)
