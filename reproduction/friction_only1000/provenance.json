@@ -1,0 +1,9 @@
+{
+  "baseline": "Legacy runtime source and assets from successful friction-only1000 Isaac run",
+  "source_snapshot": "rp-4090-5:/data/pummpkin/holosoma-friction-only1000-v1/legacy_isaac/source/holosoma",
+  "source_manifest": "source_manifest.json",
+  "configuration": "config.py exports configure(cfg), copied without semantic changes from the experiment override; returns config and changed-field audit",
+  "scope": "Source baseline and pure friction-only configuration. Original launcher, deployment paths, metrics, checkpoints and audit outputs remain external and are not included in this commit. Existing goal043 launch scripts do not automatically apply this override.",
+  "known_limit": "MJLab static friction is not independently modeled. This Isaac snapshot does not include the later friction_response adapter used by the separately frozen MJLab experiment.",
+  "generated_cache_policy": "The 28 converted_rank*/ USD/config/cache files in source_manifest.json are preserved in the original snapshot and local worktree, but excluded from Git. All 441 non-generated source/asset files match the staged version exactly."
+}

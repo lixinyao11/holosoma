@@ -17,20 +17,7 @@ from holosoma.config_values.wbt.g1.experiment import (
 
 from holosoma.config_values.wbt.g1.hdmi_goal import g1_29dof_wbt_hybrid_object_hdmi
 
-from holosoma.config_values.wbt.g1.hdmi_actuator_dr import g1_29dof_wbt_hybrid_object_hdmi_actuator_dr
-from holosoma.config_values.wbt.g1.hdmi_body_dr import g1_29dof_wbt_hybrid_object_hdmi_body_dr
-from holosoma.config_values.wbt.g1.hdmi_push_dr import g1_29dof_wbt_hybrid_object_hdmi_push_dr
-
-from holosoma.config_values.wbt.g1.hdmi_friction_dr import g1_29dof_wbt_hybrid_object_hdmi_friction_dr
-
-from holosoma.config_values.wbt.g1.hdmi_track_phase import g1_29dof_wbt_hybrid_object_hdmi_friction_dr_track_phase
-
 DEFAULTS = {
-    "g1_29dof_wbt_hybrid_object_hdmi_friction_dr_track_phase": g1_29dof_wbt_hybrid_object_hdmi_friction_dr_track_phase,
-    "g1_29dof_wbt_hybrid_object_hdmi_friction_dr": g1_29dof_wbt_hybrid_object_hdmi_friction_dr,
-    "g1_29dof_wbt_hybrid_object_hdmi_actuator_dr": g1_29dof_wbt_hybrid_object_hdmi_actuator_dr,
-    "g1_29dof_wbt_hybrid_object_hdmi_body_dr": g1_29dof_wbt_hybrid_object_hdmi_body_dr,
-    "g1_29dof_wbt_hybrid_object_hdmi_push_dr": g1_29dof_wbt_hybrid_object_hdmi_push_dr,
     "g1_29dof_wbt_hybrid_object_hdmi": g1_29dof_wbt_hybrid_object_hdmi,
     "g1_29dof": g1_29dof,
     "g1_29dof_fast_sac": g1_29dof_fast_sac,

@@ -59,9 +59,6 @@ def load_urdf_spec(path, robot_cfg, audit_dir):
                 converted_capsules.append({"name":geom.name,"radius":float(geom.size[0]),
                     "height":float(2*geom.size[1])})
     manifest["cylinder_to_capsule"] = converted_capsules
-    if robot_cfg is not None:
-        from holosoma.utils.collision_exclusions import apply_mjcf_collision_exclusions
-        apply_mjcf_collision_exclusions(spec, robot_cfg.asset.collision_exclusions)
     model = spec.compile()
     manifest["compiled"] = {"nbody":model.nbody,"njnt":model.njnt,"ngeom":model.ngeom,
         "mass":model.body_mass.tolist(),"inertia":model.body_inertia.tolist(),
