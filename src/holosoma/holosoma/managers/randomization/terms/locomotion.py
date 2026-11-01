@@ -605,8 +605,6 @@ def randomize_base_com_startup(
     )
 
     simulator = env.simulator
-    if getattr(simulator, "backend_name", None) == "mjlab":
-        return simulator.randomize("randomize_base_com_startup", locals())
 
     idx = _ensure_env_ids_tensor(env, env_ids)
     if idx.numel() == 0:
@@ -731,8 +729,6 @@ def randomize_mass_startup(
     )
 
     simulator = env.simulator
-    if getattr(simulator, "backend_name", None) == "mjlab":
-        return simulator.randomize("randomize_mass_startup", locals())
     idx = _ensure_env_ids_tensor(env, env_ids)
     if idx.numel() == 0:
         return
@@ -958,8 +954,6 @@ def randomize_robot_rigid_body_material_startup(
         return
 
     simulator = env.simulator
-    if getattr(simulator, "backend_name", None) == "mjlab":
-        return simulator.randomize("randomize_robot_rigid_body_material_startup", locals())
     if simulator.__class__.__name__ != "IsaacSim":
         raise RandomizerNotSupportedError(
             f"randomize_robot_rigid_body_material_startup only supports IsaacSim, got {type(simulator).__name__}"
@@ -1020,8 +1014,6 @@ def randomize_object_rigid_body_material_startup(
         return
 
     simulator = env.simulator
-    if getattr(simulator, "backend_name", None) == "mjlab":
-        return simulator.randomize("randomize_object_rigid_body_material_startup", locals())
     if simulator.__class__.__name__ != "IsaacSim":
         raise RandomizerNotSupportedError(
             f"randomize_object_rigid_body_material_startup only supports IsaacSim, got {type(simulator).__name__}"
@@ -1066,8 +1058,6 @@ def randomize_object_rigid_body_mass_startup(
         return
 
     simulator = env.simulator
-    if getattr(simulator, "backend_name", None) == "mjlab":
-        return simulator.randomize("randomize_object_rigid_body_mass_startup", locals())
     if simulator.__class__.__name__ != "IsaacSim":
         raise RandomizerNotSupportedError(
             f"randomize_object_rigid_body_mass_startup only supports IsaacSim, got {type(simulator).__name__}"
@@ -1110,8 +1100,6 @@ def randomize_object_rigid_body_inertia_startup(
         return
 
     simulator = env.simulator
-    if getattr(simulator, "backend_name", None) == "mjlab":
-        return simulator.randomize("randomize_object_rigid_body_inertia_startup", locals())
     if simulator.__class__.__name__ != "IsaacSim":
         raise RandomizerNotSupportedError(
             f"randomize_object_rigid_body_inertia_startup only supports IsaacSim, got {type(simulator).__name__}"
