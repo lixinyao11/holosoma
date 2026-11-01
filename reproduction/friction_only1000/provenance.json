@@ -1,9 +1,33 @@
 {
-  "baseline": "Legacy runtime source and assets from successful friction-only1000 Isaac run",
+  "baseline": "Legacy Isaac baseline, with the later experimental MJLab adapter removed",
   "source_snapshot": "rp-4090-5:/data/pummpkin/holosoma-friction-only1000-v1/legacy_isaac/source/holosoma",
   "source_manifest": "source_manifest.json",
   "configuration": "config.py exports configure(cfg), copied without semantic changes from the experiment override; returns config and changed-field audit",
   "scope": "Source baseline and pure friction-only configuration. Original launcher, deployment paths, metrics, checkpoints and audit outputs remain external and are not included in this commit. Existing goal043 launch scripts do not automatically apply this override.",
-  "known_limit": "MJLab static friction is not independently modeled. This Isaac snapshot does not include the later friction_response adapter used by the separately frozen MJLab experiment.",
-  "generated_cache_policy": "The 28 converted_rank*/ USD/config/cache files in source_manifest.json are preserved in the original snapshot and local worktree, but excluded from Git. All 441 non-generated source/asset files match the staged version exactly."
+  "known_limit": "This branch no longer provides simulator:mjlab. The original MuJoCo/classic/Warp backend and its third-party attribution are retained; they are separate from the removed MJLab adapter.",
+  "generated_cache_policy": "Generated converted_rank*/ USD/config/cache files remain outside Git and are preserved in the original frozen snapshot.",
+  "source_manifest_role": "Historical frozen runtime manifest from commit 2eb542d. It intentionally retains hashes of the original snapshot, including removed MJLab files; it is not the file inventory of this maintained branch.",
+  "mjlab_removal": {
+    "comparison_commits": [
+      "9a0f685",
+      "34e4f9c",
+      "2eb542d"
+    ],
+    "restored_to_9a0f685": [
+      "src/holosoma/holosoma/config_values/simulator.py",
+      "src/holosoma/holosoma/managers/randomization/terms/locomotion.py"
+    ],
+    "removed_files": [
+      "src/holosoma/holosoma/simulator/mjlab/__init__.py",
+      "src/holosoma/holosoma/simulator/mjlab/assets.py",
+      "src/holosoma/holosoma/simulator/mjlab/backend.py",
+      "src/holosoma/holosoma/simulator/mjlab/contact_response.py",
+      "src/holosoma/holosoma/simulator/mjlab/contracts.py",
+      "src/holosoma/holosoma/simulator/mjlab/physics_compat.py",
+      "src/holosoma/holosoma/simulator/mjlab/randomization.py",
+      "docs/hdmi-goal-mjlab.md",
+      "docs/hdmi-goal-mjlab-contact-damping.md"
+    ],
+    "unchanged": "Isaac simulator implementation, robot/assets, pure friction configuration, PPO/reward/observation/termination and experiment results"
+  }
 }

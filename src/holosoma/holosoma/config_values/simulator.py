@@ -106,15 +106,9 @@ mjwarp = SimulatorConfig(
 )
 
 
-# Opt-in backend for the isolated 043 timing comparison. Task configuration is unchanged.
-from dataclasses import replace
-mjlab = replace(mjwarp, _target_="holosoma.simulator.mjlab.backend.MuJoCo",
-                config=replace(mjwarp.config, contact_sensor_history_length=3))
-
 DEFAULTS = {
     "isaacgym": isaacgym,
     "isaacsim": isaacsim,
     "mujoco": mujoco,
     "mjwarp": mjwarp,
-    "mjlab": mjlab,
 }
