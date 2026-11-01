@@ -1,0 +1,17 @@
+{
+  "scope": "pummpkin/mjlab development branch: contact response and ground material adapters. This commit does not change any frozen training snapshot.",
+  "reference": {
+    "hdmi": "Explicit softness formulation rather than treating relaxation time as invariant physical stiffness. Existing material restitution samples are retained; old HDMI DR ranges are not copied.",
+    "mujoco": "https://mujoco.readthedocs.io/en/stable/modeling.html#solver-parameters",
+    "physx": "Actual source maximum depenetration velocity=1 m/s."
+  },
+  "mapping": "After native material mixing, positive (t,zeta) converted to direct (-1/t^2,-2*zeta/t); native refsafe timestep floor retained. Baseline stiffness matches original zeta=1; damping varies without 1/zeta^2 stiffness escalation.",
+  "penetration": "After native constraint assembly, cap only positive penetration-bias target velocity bias/b to1 m/s for contact rows. Preserve friction coefficients, constraint impedance, solver iterations, joint/equality constraints and unconstrained physical velocities. Pyramidal rows share normal bias; pure elliptic friction rows skipped.",
+  "limits": [
+    "Approximation, not identical PhysX restitution/contact solver.",
+    "Bias velocity limit is not a hard bound on realized separating velocity or joint speed.",
+    "Pinned to mujoco-warp3.11 private API. Must recapture CUDA graphs after model hook registration; unrelated models use original function.",
+    "Constant-stiffness mapping and bias cap are tested together; paired performance test does not assign benefit to one subcomponent."
+  ],
+  "validation": "tests/unit/mjlab_contact_response/check_contact_response.py checks the contact kernels on CPU. An optional output-directory argument writes the report outside the source tree. Ground-pair regression is tests/unit/mjlab_ground_materials/check_cpu.py. GPU rollout and learning-performance evidence remain external."
+}

@@ -18,6 +18,7 @@ from holosoma.simulator.base_simulator.base_simulator import BaseSimulator
 from holosoma.simulator.shared.object_registry import ObjectType
 from holosoma.simulator.mjlab.assets import load_urdf_spec, source_path
 from holosoma.simulator.mjlab.randomization import randomize
+from holosoma.simulator.mjlab.ground_materials import add_ground_pairs
 from mjlab.utils.lab_api.math import quat_apply
 from holosoma.simulator.mjlab.physics_compat import NormalContacts, object_damping_wrench
 
@@ -89,6 +90,9 @@ class MuJoCo(BaseSimulator):
         self._scene = Scene(SceneCfg(num_envs=self.num_envs,
             env_spacing=self.simulator_config.scene.env_spacing, entities=entities,
             sensors=(sensor,), terrain=TerrainEntityCfg(terrain_type="plane")), device=self.device)
+        terrain = self.terrain_manager.get_state("locomotion_terrain")
+        ground_pairs = add_ground_pairs(self._scene.spec, terrain.dynamic_friction)
+        (self.audit_dir / "ground_material_pairs.json").write_text(json.dumps(ground_pairs, indent=2))
         # Same desktop MJLab defaults: only dt is fixed to the original task's 200 Hz.
         self._sim = Simulation(num_envs=self.num_envs,
             cfg=SimulationCfg(nconmax=512, njmax=2048, contact_sensor_maxmatch=80,
@@ -97,7 +101,9 @@ class MuJoCo(BaseSimulator):
         self._scene.initialize(self._sim.mj_model, self._sim.model, self._sim.data)
         if self._scene.sensor_context is not None:
             self._sim.set_sensor_context(self._scene.sensor_context)
-        self._sim.expand_model_fields(("body_mass", "body_inertia", "body_iquat", "body_ipos", "geom_friction", "geom_solref"))
+        self._sim.expand_model_fields(("body_mass", "body_inertia", "body_iquat", "body_ipos", "geom_friction", "geom_solref", "pair_friction", "pair_solref"))
+        from .contact_response import install as install_contact_response
+        install_contact_response(self._sim)
         self.entities = self._scene.entities
         self._robot = self.entities["robot"]
         self.scene = SimpleNamespace(env_origins=self._scene.env_origins,

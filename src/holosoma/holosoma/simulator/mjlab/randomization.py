@@ -2,6 +2,7 @@
 import math
 import os
 import torch
+from holosoma.simulator.mjlab.ground_materials import update_ground_pairs
 from mjlab.managers.event_manager import RecomputeLevel
 from mjlab.utils.lab_api.math import matrix_from_quat, quat_from_matrix
 
@@ -51,8 +52,10 @@ def randomize(sim, kind, p):
         damping = torch.where(e == 0, torch.ones_like(damping), damping)
         m.geom_friction[ids[:,None],geoms,0] = df
         m.geom_solref[ids[:,None],geoms,1] = damping
+        update_ground_pairs(sim, ids)
+        samples["ground_combination"] = "dynamic friction product; zero ground restitution -> damping ratio1; native solver retained"
         samples["actual_damping_ratio"] = damping.detach().cpu()
-        samples["mapping"] = "sliding=dynamic; static retained only; damping=-ln(e)/sqrt(pi^2+ln(e)^2); native MuJoCo contact combination"
+        samples["mapping"] = "sliding=dynamic; static retained only; damping=-ln(e)/sqrt(pi^2+ln(e)^2); native non-ground combination; ground multiply friction and zero restitution"
     elif kind == "randomize_base_com_startup":
         b = sim._robot.indexing.body_ids[sim._robot.body_names.index(env.robot_config.torso_name)]
         bias = torch.stack([draw(p["base_com_range"][axis],(len(ids),),axis) for axis in "xyz"],-1)
