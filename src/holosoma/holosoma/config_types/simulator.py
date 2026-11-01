@@ -527,6 +527,38 @@ class BridgeConfig:
 
 
 @dataclass(frozen=True)
+class EgoCameraConfig:
+    """A camera on a robot body in every environment (IsaacSim TiledCamera), e.g. for a vision student policy.
+
+    The defaults are the Denso datasets' egocentric camera: the G1's head D435i (SIMPLE's head camera pose) on
+    ``torso_link``, 47.6 deg down, 110 deg horizontal field of view, at a low resolution for training."""
+
+    enabled: bool = False
+    """Add the camera (and turn on IsaacSim's camera rendering)."""
+
+    body: str = "torso_link"
+    """Robot body the camera is attached to."""
+
+    pos: tuple[float, float, float] = (0.0576235, 0.01753, 0.42987)
+    """Camera position in the body frame (m)."""
+
+    rpy: tuple[float, float, float] = (0.0, 0.8307767, 0.0)
+    """Camera orientation in the body frame (rad; camera x forward, y left, z up)."""
+
+    width: int = 128
+    height: int = 72
+    hfov_deg: float = 110.0
+    """Horizontal field of view (deg)."""
+
+    near: float = 0.12
+    """Near clipping distance (m): culls the head shell the real camera looks through."""
+
+    far: float = 10.0
+    data_types: tuple[str, ...] = ("rgb", "distance_to_image_plane")
+    """IsaacLab camera outputs to render."""
+
+
+@dataclass(frozen=True)
 class SimulatorInitConfig:
     """Top-level simulator initialisation configuration."""
 
@@ -566,6 +598,9 @@ class SimulatorInitConfig:
 
     contact_sensor_history_length: int = 3
     """Number of frames of contact data retained for sensors."""
+
+    ego_camera: EgoCameraConfig = field(default_factory=EgoCameraConfig)
+    """Camera on a robot body in every environment (IsaacSim only); off by default."""
 
     robot_mjcf_filter: MujocoXMLFilterCfg = field(default_factory=MujocoXMLFilterCfg)
     """MuJoCo-specific XML filtering configuration for robot MJCF files."""

@@ -3,6 +3,7 @@ from __future__ import annotations
 import builtins
 import copy
 import dataclasses
+import math
 import os
 import xml.etree.ElementTree as ET
 from typing import Any
@@ -22,7 +23,7 @@ from isaaclab.envs import ViewerCfg, mdp
 from isaaclab.managers import EventManager, SceneEntityCfg
 from isaaclab.managers import EventTermCfg as EventTerm
 from isaaclab.scene import InteractiveScene, InteractiveSceneCfg
-from isaaclab.sensors import ContactSensor, ContactSensorCfg, RayCaster, RayCasterCfg, patterns
+from isaaclab.sensors import ContactSensor, ContactSensorCfg, RayCaster, RayCasterCfg, TiledCamera, TiledCameraCfg, patterns
 from isaaclab.sim import PhysxCfg, SimulationCfg, SimulationContext
 from isaaclab.terrains import TerrainGeneratorCfg, TerrainImporterCfg
 from isaaclab.terrains.utils import create_prim_from_mesh
@@ -65,6 +66,27 @@ from holosoma.simulator.types import ActorNames, ActorIndices, EnvIds, ActorStat
 # Object variants (robot.object.object_urdf_paths) an environment does not track are parked here (x, y + k * spacing).
 OBJECT_VARIANT_PARK_OFFSET = (0.0, 30.0)
 OBJECT_VARIANT_PARK_SPACING = 3.0
+
+
+def _ego_camera_cfg(cam) -> TiledCameraCfg:
+    """TiledCamera on robot body ``cam.body`` in every environment, from an EgoCameraConfig."""
+    r, p, y = cam.rpy
+    cr, sr, cp, sp, cy, sy = (math.cos(r / 2), math.sin(r / 2), math.cos(p / 2), math.sin(p / 2), math.cos(y / 2),
+                              math.sin(y / 2))
+    quat_wxyz = (cr * cp * cy + sr * sp * sy, sr * cp * cy - cr * sp * sy, cr * sp * cy + sr * cp * sy,
+                 cr * cp * sy - sr * sp * cy)
+    aperture = 20.955  # mm, IsaacLab's default horizontal aperture; the focal length gives the field of view
+    focal = aperture / (2.0 * math.tan(math.radians(cam.hfov_deg) / 2.0))
+    return TiledCameraCfg(
+        prim_path=f"/World/envs/env_.*/Robot/{cam.body}/ego_camera",
+        offset=TiledCameraCfg.OffsetCfg(pos=tuple(cam.pos), rot=quat_wxyz, convention="world"),
+        data_types=list(cam.data_types),
+        spawn=sim_utils.PinholeCameraCfg(focal_length=focal, horizontal_aperture=aperture,
+                                         clipping_range=(cam.near, cam.far)),
+        width=cam.width,
+        height=cam.height,
+    )
+
 
 class IsaacSim(BaseSimulator):
     def __init__(self, tyro_config: FullSimConfig, terrain_manager: TerrainManager, device: str):
@@ -396,6 +418,12 @@ class IsaacSim(BaseSimulator):
 
         self.contact_sensor = ContactSensor(contact_sensor_config)
         self.scene.sensors["contact_sensor"] = self.contact_sensor
+
+        self.ego_camera = None
+        cam = self.simulator_config.ego_camera
+        if cam.enabled:
+            self.ego_camera = TiledCamera(_ego_camera_cfg(cam))
+            self.scene.sensors["ego_camera"] = self.ego_camera
 
         if height_scanner_config:
             self._height_scanner = RayCaster(height_scanner_config)

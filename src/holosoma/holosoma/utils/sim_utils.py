@@ -100,9 +100,9 @@ def setup_isaaclab_launcher(config: ExperimentConfig | RunSimConfig, device: str
     else:  # AppLauncher auto-detects
         pass
 
-    # Check if video recording is enabled and add --enable_cameras flag
+    # Check if video recording or the ego camera is enabled and add --enable_cameras flag
     video_enabled = config.logger.video.enabled or config.logger.headless_recording
-    if video_enabled:
+    if video_enabled or config.simulator.config.ego_camera.enabled:
         args_cli.enable_cameras = True
 
     app_launcher = AppLauncher(args_cli)
