@@ -169,9 +169,11 @@ def create_video(video_frames, fps, save_dir, output_format="mp4", wandb_logging
         final_video = save_dir / f"temp_{output_format}_{timestamp}_{temp_id}.mp4"
         cleanup_files = True
     else:
-        # Local path: create permanent files
-        final_video = save_dir / f"{recording_prefix}{timestamp}.mp4"
-        temp_raw = save_dir / f"{recording_prefix}temp_raw_{timestamp}.mp4"
+        # Local path: create permanent files. The id keeps the names unique when several training processes (one
+        # per GPU) record in the same second into the same run directory.
+        file_id = str(uuid.uuid4())[:8]
+        final_video = save_dir / f"{recording_prefix}{timestamp}_{file_id}.mp4"
+        temp_raw = save_dir / f"{recording_prefix}temp_raw_{timestamp}_{file_id}.mp4"
         cleanup_files = False
 
     temp_files_to_cleanup = []
