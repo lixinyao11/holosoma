@@ -1,8 +1,6 @@
 """Opt-in HDMI-informed state teacher. Original hybrid presets stay unchanged."""
 from dataclasses import replace
 from math import pi
-from holosoma.config_values.wbt.g1.robot_mode15 import with_mode15
-from holosoma.utils.collision_exclusions import HDMI_G1_SELF_COLLISION_EXCLUSIONS
 from holosoma.config_types.observation import ObsHistoryAugCfg, ObsTermCfg
 from holosoma.config_types.reward import RewardTermCfg
 from holosoma.config_values.wbt.g1.experiment import g1_29dof_wbt_hybrid_object
@@ -62,8 +60,6 @@ termination_terms['bad_tracking'] = replace(bad_tracking, params={
 g1_29dof_wbt_hybrid_object_hdmi = replace(
     base,
     training=replace(base.training, name='g1_29dof_wbt_hybrid_object_hdmi'),
-    robot=with_mode15(replace(base.robot, asset=replace(base.robot.asset,
-        collision_exclusions=HDMI_G1_SELF_COLLISION_EXCLUSIONS))),
     observation=replace(base.observation, groups=groups, history_augmentation=False),
     reward=replace(base.reward, terms=reward_terms),
     termination=replace(base.termination, terms=termination_terms),

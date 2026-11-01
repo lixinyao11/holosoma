@@ -432,23 +432,12 @@ class IsaacSim(BaseSimulator):
             self._height_scanner = RayCaster(height_scanner_config)
             self.scene.sensors["height_scanner"] = self._height_scanner
 
-        # Preserve explicit robot filters before either upstream cloning path.
-        if robot_asset_cfg.collision_exclusions:
-            from holosoma.utils.collision_exclusions import apply_usd_collision_exclusions
-            apply_usd_collision_exclusions(self.sim.stage, ["/World/envs/env_0/Robot"],
-                                           robot_asset_cfg.collision_exclusions)
-
         variants = self.robot_config.object.object_urdf_paths
         per_env = bool(variants) and self.robot_config.object.object_per_env
 
         # clone, filter, and replicate (one object per environment: cloned with the objects below)
         if not per_env:
             self.scene.clone_environments(copy_from_source=False)
-
-        if robot_asset_cfg.collision_exclusions and not per_env:
-            apply_usd_collision_exclusions(self.sim.stage,
-                [f"/World/envs/env_{i}/Robot" for i in range(self.training_config.num_envs)],
-                robot_asset_cfg.collision_exclusions)
 
         if hasattr(self.simulator_config.scene, "usd_file"):
             # Activate collisions with the entire scene
@@ -563,15 +552,6 @@ class IsaacSim(BaseSimulator):
             envs = [k] + list(range(first[k], first[k] + counts[k] - 1))
             Cloner.clone(cloner, paths[k], [paths[e] for e in envs], positions=positions[envs],
                          replicate_physics=False, copy_from_source=False)
-
-        # Group cloning creates the remaining robot prims here. Resolve each
-        # local target before registering PhysX replication.
-        if self.robot_config.asset.collision_exclusions:
-            from holosoma.utils.collision_exclusions import apply_usd_collision_exclusions
-            apply_usd_collision_exclusions(
-                self.sim.stage, [f"{path}/Robot" for path in paths],
-                self.robot_config.asset.collision_exclusions,
-            )
 
         stage = self.sim.stage
         stage.GetPrimAtPath(self.scene.physics_scene_path).CreateAttribute(

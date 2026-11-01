@@ -62,8 +62,6 @@ class RobotAssetConfig:
     mesh_root: str | None = None
     density: float | None = None
     disable_gravity: bool | None = None
-    collision_exclusions: tuple[tuple[str, str], ...] = ()
-    """Body-name pairs excluded from self-collision; all other contacts remain enabled."""
 
 
 @dataclass(frozen=True)

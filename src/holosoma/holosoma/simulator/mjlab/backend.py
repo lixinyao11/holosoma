@@ -98,6 +98,8 @@ class MuJoCo(BaseSimulator):
         if self._scene.sensor_context is not None:
             self._sim.set_sensor_context(self._scene.sensor_context)
         self._sim.expand_model_fields(("body_mass", "body_inertia", "body_iquat", "body_ipos", "geom_friction", "geom_solref"))
+        from .contact_response import install as install_contact_response
+        install_contact_response(self._sim)
         self.entities = self._scene.entities
         self._robot = self.entities["robot"]
         self.scene = SimpleNamespace(env_origins=self._scene.env_origins,
