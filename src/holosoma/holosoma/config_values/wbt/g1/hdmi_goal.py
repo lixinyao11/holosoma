@@ -1,4 +1,4 @@
-"""Opt-in HDMI-informed state teacher. Original hybrid presets stay unchanged."""
+"""Legacy HDMI teacher: M15 with the three independently switchable enhancements."""
 from dataclasses import replace
 from math import pi
 from holosoma.config_types.observation import ObsHistoryAugCfg, ObsTermCfg
@@ -57,10 +57,24 @@ termination_terms['bad_tracking'] = replace(bad_tracking, params={
     'gen_bad_object_ori_threshold': None,
 })
 
-g1_29dof_wbt_hybrid_object_hdmi = replace(
+_hdmi_original = replace(
     base,
     training=replace(base.training, name='g1_29dof_wbt_hybrid_object_hdmi'),
     observation=replace(base.observation, groups=groups, history_augmentation=False),
     reward=replace(base.reward, terms=reward_terms),
     termination=replace(base.termination, terms=termination_terms),
 )
+
+
+def make_legacy_m15_config(*, collision_exclusions=True, motor_dr=True, delay_filter=True):
+    """Build from the original teacher so switches can be independently disabled."""
+    from holosoma.config_values.wbt.g1.legacy_m15 import with_legacy_m15
+    return with_legacy_m15(_hdmi_original, collision_exclusions=collision_exclusions,
+                          motor_dr=motor_dr, delay_filter=delay_filter)
+
+
+# The established HDMI/goal043 entry points now use the approved legacy profile.
+g1_29dof_wbt_hybrid_object_hdmi = make_legacy_m15_config()
+# Explicit M15 reference: original full DR, all three new switches disabled.
+g1_29dof_wbt_hybrid_object_hdmi_m15_reference = make_legacy_m15_config(
+    collision_exclusions=False, motor_dr=False, delay_filter=False)

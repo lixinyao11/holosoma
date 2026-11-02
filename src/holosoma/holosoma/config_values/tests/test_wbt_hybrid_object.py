@@ -24,16 +24,18 @@ def _hybrid_keys(defaults: dict) -> set[str]:
     return {key for key in defaults if "_wbt_hybrid" in key}
 
 
-def test_public_release_exposes_exactly_two_hybrid_tasks():
-    expected = {"g1_29dof_wbt_hybrid_climb", "g1_29dof_wbt_hybrid_object"}
-    for defaults in (
-        experiment_defaults.DEFAULTS,
-        command_defaults.DEFAULTS,
-        observation_defaults.DEFAULTS,
-        reward_defaults.DEFAULTS,
-        termination_defaults.DEFAULTS,
-    ):
-        assert _hybrid_keys(defaults) == expected
+def test_public_release_exposes_explicit_hybrid_tasks():
+    common = {"g1_29dof_wbt_hybrid_climb", "g1_29dof_wbt_hybrid_object"}
+    multi = {"g1_29dof_wbt_hybrid_multi_object"}
+    hdmi = {
+        "g1_29dof_wbt_hybrid_object_hdmi",
+        "g1_29dof_wbt_hybrid_object_hdmi_m15_reference",
+    }
+    assert _hybrid_keys(experiment_defaults.DEFAULTS) == common | multi | hdmi
+    for defaults in (command_defaults.DEFAULTS, observation_defaults.DEFAULTS):
+        assert _hybrid_keys(defaults) == common | multi
+    for defaults in (reward_defaults.DEFAULTS, termination_defaults.DEFAULTS):
+        assert _hybrid_keys(defaults) == common
 
     aliases = {f"exp:{key.replace('_', '-')}": value for key, value in experiment_defaults.DEFAULTS.items()}
     assert aliases["exp:g1-29dof-wbt-hybrid-object"] is g1_29dof_wbt_hybrid_object

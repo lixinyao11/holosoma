@@ -23,9 +23,13 @@ from holosoma.config_values.wbt.g1.experiment import (
     g1_29dof_wbt_w_object,
 )
 
-from holosoma.config_values.wbt.g1.hdmi_goal import g1_29dof_wbt_hybrid_object_hdmi
+from holosoma.config_values.wbt.g1.hdmi_goal import (
+    g1_29dof_wbt_hybrid_object_hdmi,
+    g1_29dof_wbt_hybrid_object_hdmi_m15_reference,
+)
 
 DEFAULTS = {
+    "g1_29dof_wbt_hybrid_object_hdmi_m15_reference": g1_29dof_wbt_hybrid_object_hdmi_m15_reference,
     "g1_29dof_wbt_hybrid_object_hdmi": g1_29dof_wbt_hybrid_object_hdmi,
     "g1_29dof": g1_29dof,
     "g1_29dof_fast_sac": g1_29dof_fast_sac,
