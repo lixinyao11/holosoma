@@ -10,7 +10,10 @@
 # `scripts/export.py --format holosoma`); OBJECTS: object datasets to use, in order; EXP: experiment preset (default
 # g1-29dof-wbt-hybrid-multi-object; g1-29dof-wbt-hybrid-multi-object-future adds the object poses a few steps ahead).
 # EXCLUDE: optional file of clip names (npz stems, one per line) to leave out; the remaining clips of each object are
-# linked into a temporary <object>/motions directory.
+# linked into a temporary <object>/motions directory. An OBJECTS entry <source>/<object> (e.g. hiphi/Box_A_1) is the
+# dataset of another source next to DENSO_HOLOSOMA_DATA (../../<source>/umr/<object>), so sources can be mixed.
+# With --robot.object.object-per-env=True each environment holds only its own object (environments in one block per
+# object, sizes from --robot.object.object-env-weights) instead of all of them.
 set -euo pipefail
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 DATA=${DENSO_HOLOSOMA_DATA:-$HOME/Code/Denso/data/holosoma/omomo/umr}
@@ -20,17 +23,20 @@ dirs=()
 urdfs=()
 [[ -n "${EXCLUDE:-}" ]] && KEEP=$(mktemp -d)
 for o in $OBJECTS; do
+  d="$DATA/$o"
+  [[ $o == */* ]] && d="$(dirname "$(dirname "$DATA")")/${o%%/*}/umr/${o#*/}"
+  n=$(basename "$d")
   if [[ -n "${EXCLUDE:-}" ]]; then
-    mkdir -p "$KEEP/$o/motions"
-    for f in "$DATA/$o/motions"/*.npz; do
-      grep -qxF "$(basename "$f" .npz)" "$EXCLUDE" || ln -s "$f" "$KEEP/$o/motions/"
+    mkdir -p "$KEEP/$n/motions"
+    for f in "$d/motions"/*.npz; do
+      grep -qxF "$(basename "$f" .npz)" "$EXCLUDE" || ln -s "$f" "$KEEP/$n/motions/"
     done
-    echo "$o: $(ls "$KEEP/$o/motions" | wc -l) of $(ls "$DATA/$o/motions" | wc -l) clips (EXCLUDE=$EXCLUDE)"
-    dirs+=("$KEEP/$o/motions")
+    echo "$o: $(ls "$KEEP/$n/motions" | wc -l) of $(ls "$d/motions" | wc -l) clips (EXCLUDE=$EXCLUDE)"
+    dirs+=("$KEEP/$n/motions")
   else
-    dirs+=("$DATA/$o/motions")
+    dirs+=("$d/motions")
   fi
-  urdfs+=("'$DATA/$o/$o.urdf'")
+  urdfs+=("'$d/$n.urdf'")
 done
 source "$SCRIPT_DIR/source_isaacsim_setup.sh"    # also puts this checkout's src/holosoma first on PYTHONPATH
 cd "$SCRIPT_DIR/.."                               # holosoma writes logs/ relative to the working directory

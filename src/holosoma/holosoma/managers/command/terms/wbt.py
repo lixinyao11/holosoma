@@ -1236,9 +1236,12 @@ class MotionCommand(CommandTermBase):
         )
 
         # 3. get the name of the object, or indices of the object
+        # one object per environment (robot.object.object_per_env): the simulator's env_object_group says which
+        self.object_per_env = getattr(self._env.simulator, "env_object_group", None) is not None
         if self.motion.has_object:
             # cache the object_index_in_simulator (object groups: replaced by each environment's variant below)
-            self.object_name = "object_00" if self.motion_cfg.motion_dir_object_groups else "object"
+            variants = self.motion_cfg.motion_dir_object_groups and not self.object_per_env
+            self.object_name = "object_00" if variants else "object"
             self.object_indices_in_simulator = self._env.simulator.get_actor_indices(self.object_name, env_ids=None)
 
             assert self._env.simulator.get_simulator_type() == SimulatorType.ISAACSIM, (
@@ -1508,7 +1511,7 @@ class MotionCommand(CommandTermBase):
 
         # 4. Set the object states in simulator
         if self.motion.has_object:
-            if self.object_groups:
+            if self.object_groups and not self.object_per_env:
                 self._set_object_variant_states(env_ids, self._object_reset_states(env_ids))
             else:
                 self._env.simulator.set_actor_states([self.object_name], env_ids, self._object_reset_states(env_ids))
@@ -1803,7 +1806,7 @@ class MotionCommand(CommandTermBase):
         """Object states [num_envs, 13]. With object groups, each environment's own variant: every variant is read
         in environment order and the tracked one picked per environment (the root-state proxy concatenates mixed
         indices object by object, not in index order)."""
-        if getattr(self, "object_groups", False):
+        if getattr(self, "object_groups", False) and not self.object_per_env:
             states = torch.stack(
                 [self._env.simulator.all_root_states[idx] for idx in self._object_variant_indices]
             )  # [N, num_envs, 13]
@@ -2190,6 +2193,16 @@ class MotionCommand(CommandTermBase):
             f"MotionCommand: {self.num_object_groups} object groups, motions per group "
             f"{[ids.numel() for ids in self._group_motion_ids]}"
         )
+        if self.object_per_env:   # environment e holds only object env_object_group[e] (one block per object)
+            self.env_object_group = self._env.simulator.env_object_group.to(self.device)
+            if self.env_object_group.numel() != self.num_envs or int(self.env_object_group.max()) != (
+                self.num_object_groups - 1
+            ):
+                raise ValueError(
+                    f"object_per_env: {self.num_object_groups} motion_dir entries but the scene has objects "
+                    f"0..{int(self.env_object_group.max())} (set robot.object.object_urdf_paths in the same order)"
+                )
+            return
         # Object variants (robot.object.object_urdf_paths): every environment holds object_00, object_01, ... in group
         # order; environment e tracks variant e % N (its rows of all_root_states), the others are parked at reset
         # (their pose at the start of the group's first clip, moved away from the robot).

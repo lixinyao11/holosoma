@@ -284,6 +284,45 @@ def object_group_one_hot(env: WholeBodyTrackingManager) -> torch.Tensor:
     return torch.nn.functional.one_hot(motion_command.env_object_group, motion_command.num_object_groups).float()
 
 
+def _urdf_collision_bbox(urdf_path: str) -> list[float]:
+    """Centre (3) and half extents (3) of the axis-aligned box around a URDF's collision meshes, in its link frame
+    (one link, collision origins translated only, as in the Denso holosoma exports)."""
+    import os
+    import xml.etree.ElementTree as ET
+
+    import numpy as np
+    import trimesh
+
+    points = []
+    for col in ET.parse(urdf_path).getroot().iter("collision"):
+        mesh = col.find("geometry/mesh")
+        if mesh is None:
+            continue
+        origin = col.find("origin")
+        xyz = np.array([float(v) for v in origin.get("xyz", "0 0 0").split()]) if origin is not None else np.zeros(3)
+        m = trimesh.load(os.path.join(os.path.dirname(urdf_path), mesh.get("filename")), force="mesh", process=False)
+        points.append(np.asarray(m.vertices) + xyz)
+    if not points:
+        raise ValueError(f"{urdf_path}: no collision meshes")
+    p = np.concatenate(points)
+    lo, hi = p.min(0), p.max(0)
+    return [*((lo + hi) / 2).tolist(), *((hi - lo) / 2).tolist()]
+
+
+def object_bbox(env: WholeBodyTrackingManager) -> torch.Tensor:
+    """The environment's object as a box in its own frame: centre (3) and half extents (3) of its collision meshes
+    (robot.object.object_urdf_paths[group], or object_urdf_path). Tells the policy the object's size and where its
+    frame sits in it, so one policy can handle many objects."""
+    motion_command = _get_motion_command_and_assert_type(env)
+    table = getattr(motion_command, "_object_bbox_table", None)
+    if table is None:
+        obj = env.robot_config.object
+        paths = obj.object_urdf_paths or [obj.object_urdf_path]
+        table = torch.tensor([_urdf_collision_bbox(p) for p in paths], dtype=torch.float32, device=env.device)
+        motion_command._object_bbox_table = table
+    return table[motion_command.env_object_group]
+
+
 def obj_pos_b(env: WholeBodyTrackingManager) -> torch.Tensor:
     motion_command = _get_motion_command_and_assert_type(env)
     pos, _ = subtract_frame_transforms(

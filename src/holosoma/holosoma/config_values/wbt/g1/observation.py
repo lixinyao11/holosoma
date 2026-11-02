@@ -445,12 +445,35 @@ g1_29dof_wbt_observation_hybrid_multi_object_future_hands = ObservationManagerCf
     },
 )
 
+# Same, with the object's size for actor and critic (its box: centre and half extents in its own frame), for one policy
+# over many different objects.
+object_bbox_terms = {
+    "object_bbox": ObsTermCfg(func="holosoma.managers.observation.terms.wbt:object_bbox", scale=1.0, noise=0.0)
+}
+
+g1_29dof_wbt_observation_hybrid_multi_object_future_hands_bbox = ObservationManagerCfg(
+    groups={
+        "actor_obs": replace(
+            actor_obs_hybrid_object_future,
+            terms={**actor_obs_hybrid_object_future.terms, **hand_obs_terms, **object_bbox_terms},
+        ),
+        "critic_obs": ObsGroupCfg(
+            concatenate=True,
+            enable_noise=False,
+            history_length=1,
+            history_augmentation=wbt_object_history_1s,
+            terms={**critic_obs_hybrid_multi_object_terms, **obj_future_terms, **hand_obs_terms, **object_bbox_terms},
+        ),
+    },
+)
+
 __all__ = [
     "g1_29dof_wbt_observation",
     "g1_29dof_wbt_observation_hybrid_climb",
     "g1_29dof_wbt_observation_hybrid_multi_object",
     "g1_29dof_wbt_observation_hybrid_multi_object_future",
     "g1_29dof_wbt_observation_hybrid_multi_object_future_hands",
+    "g1_29dof_wbt_observation_hybrid_multi_object_future_hands_bbox",
     "g1_29dof_wbt_observation_hybrid_object",
     "g1_29dof_wbt_observation_w_object",
 ]

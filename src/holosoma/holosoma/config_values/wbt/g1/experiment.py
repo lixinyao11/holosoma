@@ -309,6 +309,24 @@ g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_z
     termination=termination.g1_29dof_wbt_termination_hybrid_object_persistent_anchor_zbody,
 )
 
+# Same, for many objects: one object per environment (robot.object.object_per_env) and the object's box (centre and half
+# extents in its frame) observed by actor and critic.
+g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody_bbox = replace(
+    g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody,
+    training=replace(
+        g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody.training,
+        name="g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody_bbox",
+    ),
+    robot=replace(
+        g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody.robot,
+        object=replace(
+            g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody.robot.object,
+            object_per_env=True,
+        ),
+    ),
+    observation=observation.g1_29dof_wbt_observation_hybrid_multi_object_future_hands_bbox,
+)
+
 g1_29dof_wbt_fast_sac_w_object = replace(
     g1_29dof_wbt_fast_sac,
     command=command.g1_29dof_wbt_command_w_object,
@@ -346,6 +364,7 @@ __all__ = [
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody",
+    "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_anchor_hands_rewind_zbody_bbox",
     "g1_29dof_wbt_hybrid_multi_object_future_rubberhand_persist_hands",
     "g1_29dof_wbt_hybrid_object",
     "g1_29dof_wbt_w_object",

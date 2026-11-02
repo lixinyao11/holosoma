@@ -78,6 +78,12 @@ class ObjectConfig:
     """Several object variants instead of ``object_urdf_path`` (IsaacSim only): every environment gets one object per
     URDF (``object_00``, ``object_01``, ...), identical across environments; with ``motion_dir_object_groups`` the motion
     command tracks variant ``e % N`` in environment e and parks the others."""
+    object_per_env: bool = False
+    """With ``object_urdf_paths``: one object per environment instead of every variant in every environment. The
+    environments are split into one contiguous block per URDF and physics is replicated block by block, so a step
+    costs what a single object costs however many URDFs there are (``motion_dir_object_groups`` required)."""
+    object_env_weights: list[float] | None = None
+    """With ``object_per_env``: relative number of environments per URDF (default: equal)."""
 
 
 @dataclass(frozen=True)

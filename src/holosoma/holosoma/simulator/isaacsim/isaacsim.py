@@ -98,6 +98,7 @@ class IsaacSim(BaseSimulator):
         self._actor_initial_positions: dict[str, torch.Tensor] = {}
         self._actor_local_collision_bounds: dict[str, torch.Tensor] = {}
         self._per_env_rigid_object_states_applied = False
+        self.env_object_group: torch.Tensor | None = None   # object of each environment (robot.object.object_per_env)
 
         sim_config: SimulationCfg = SimulationCfg(
             dt=1.0 / self.simulator_config.sim.fps,
@@ -180,6 +181,8 @@ class IsaacSim(BaseSimulator):
             with Timer("[INFO]: Time taken for simulation start", "simulation_start"):
                 self.sim.reset()
             self._apply_per_environment_rigid_object_initial_states()
+            if self.env_object_group is not None:
+                self._check_env_order()
 
         self.default_coms = self._robot.root_physx_view.get_coms().clone()
         self.base_com_bias = torch.zeros((self.training_config.num_envs, 3), dtype=torch.float, device="cpu")
@@ -429,19 +432,24 @@ class IsaacSim(BaseSimulator):
             self._height_scanner = RayCaster(height_scanner_config)
             self.scene.sensors["height_scanner"] = self._height_scanner
 
-        # clone, filter, and replicate
-        self.scene.clone_environments(copy_from_source=False)
+        variants = self.robot_config.object.object_urdf_paths
+        per_env = bool(variants) and self.robot_config.object.object_per_env
+
+        # clone, filter, and replicate (one object per environment: cloned with the objects below)
+        if not per_env:
+            self.scene.clone_environments(copy_from_source=False)
 
         if hasattr(self.simulator_config.scene, "usd_file"):
             # Activate collisions with the entire scene
             global_collision_prims.append("/World/scene")
 
-        self.scene.filter_collisions(global_prim_paths=global_collision_prims)
+        if not per_env:
+            self.scene.filter_collisions(global_prim_paths=global_collision_prims)
 
         # add objects if object is provided. With object_urdf_paths, every environment gets one object per URDF
         # (object_00, object_01, ... at prims Object_00, ...), identical across environments so physics replication
         # applies; the motion command tracks one per environment and parks the others (OBJECT_VARIANT_PARK_*).
-        variants = self.robot_config.object.object_urdf_paths
+        # With object_per_env, environment e holds only object env_object_group[e] (_clone_with_object_groups).
         object_urdf_paths = variants or (
             [self.robot_config.object.object_urdf_path] if self.robot_config.object.object_urdf_path else []
         )
@@ -482,6 +490,11 @@ class IsaacSim(BaseSimulator):
                 )
                 self._object = RigidObject(object_cfg)
                 self.scene.rigid_objects["object"] = self._object  # hardcoded object name
+            elif per_env:
+                self._clone_with_object_groups(object_spawns)
+                self.scene.filter_collisions(global_prim_paths=global_collision_prims)
+                self._object = RigidObject(RigidObjectCfg(prim_path="/World/envs/env_.*/Object", spawn=None))
+                self.scene.rigid_objects["object"] = self._object
             else:
                 for k, spawn in enumerate(object_spawns):
                     park = (OBJECT_VARIANT_PARK_OFFSET[0], OBJECT_VARIANT_PARK_OFFSET[1] + k * OBJECT_VARIANT_PARK_SPACING)
@@ -502,6 +515,74 @@ class IsaacSim(BaseSimulator):
             color=(0.98, 0.95, 0.88),
         )
         light_config1.func("/World/DomeLight", light_config1, translation=(1, 0, 10))
+
+    def _clone_with_object_groups(self, spawns: list) -> None:
+        """One object per environment (robot.object.object_per_env): environment e holds ``spawns[g]`` with
+        g = ``self.env_object_group[e]``. env_0 .. env_{N-1} are independent copies of env_0, each given its own object
+        at ``Object``; every other environment inherits from its object's source, one contiguous block per object
+        (sizes from object_env_weights). Physics is replicated block by block from each source (one PhysX replication
+        per object), so a step costs what one object costs. PhysX creates the sources first and then each block's
+        replicas, and the replicas are named in that order, so the physics views list environments in index order."""
+        from isaacsim.core.cloner import Cloner
+        from omni.physx import get_physx_replicator_interface
+        from pxr import UsdUtils
+
+        num_envs, n = int(self.training_config.num_envs), len(spawns)
+        weights = self.robot_config.object.object_env_weights or [1.0] * n
+        if len(weights) != n or min(weights) <= 0:
+            raise ValueError(f"object_env_weights: {n} positive weights needed, got {weights}")
+        if num_envs < n:
+            raise ValueError(f"object_per_env: {num_envs} environments for {n} objects")
+        # environments per object: at least 1 (the source), the rest by largest remainder of the weights
+        share = torch.tensor(weights, dtype=torch.float64) / sum(weights) * (num_envs - n)
+        counts = (share.floor().long() + 1).tolist()
+        for k in torch.argsort(share - share.floor(), descending=True)[: num_envs - sum(counts)].tolist():
+            counts[k] += 1
+        first = [n + sum(c - 1 for c in counts[:k]) for k in range(n)]   # first replica of each object
+        group = list(range(n)) + [k for k in range(n) for _ in range(counts[k] - 1)]
+        self.env_object_group = torch.tensor(group, dtype=torch.long, device=self.sim_device)
+
+        cloner, paths = self.scene.cloner, self.scene.env_prim_paths
+        positions = torch.as_tensor(cloner.get_clone_transforms(num_envs)[0], dtype=torch.float32)
+        Cloner.clone(cloner, paths[0], paths[:n], positions=positions[:n], replicate_physics=False,
+                     copy_from_source=True)
+        for k, spawn in enumerate(spawns):
+            spawn.func(f"{paths[k]}/Object", spawn, translation=(0.0, 0.0, 0.5))
+        for k in range(n):
+            envs = [k] + list(range(first[k], first[k] + counts[k] - 1))
+            Cloner.clone(cloner, paths[k], [paths[e] for e in envs], positions=positions[envs],
+                         replicate_physics=False, copy_from_source=False)
+
+        stage = self.sim.stage
+        stage.GetPrimAtPath(self.scene.physics_scene_path).CreateAttribute(
+            "physxScene:envIdInBoundsBitCount", Sdf.ValueTypeNames.Int
+        ).Set(4)
+        replicator = get_physx_replicator_interface()
+        env_root = paths[0].rsplit("_", 1)[0]     # /World/envs/env
+
+        def attach(_stage_id):
+            return [self.scene.env_ns]            # nothing under /World/envs is parsed; replicate() creates it
+
+        def attach_end(stage_id):
+            for k in range(n):
+                if counts[k] > 1:
+                    replicator.replicate(stage_id, paths[k], counts[k] - 1, True, False)
+
+        def rename(source, index):
+            return f"{env_root}_{first[int(source.rsplit('_', 1)[1])] + index}"
+
+        replicator.register_replicator(UsdUtils.StageCache.Get().Insert(stage).ToLongInt(), attach, attach_end, rename)
+        self.scene._default_env_origins = positions.to(self.sim_device)
+        logger.info(f"One object per environment: {n} objects, environments per object {counts}")
+
+    def _check_env_order(self) -> None:
+        """object_per_env: the robot and object physics views must list environments in index order."""
+        expected = [f"{p}/" for p in self.scene.env_prim_paths]
+        for name, view in (("robot", self._robot.root_physx_view), ("object", self._object.root_physx_view)):
+            got = [p for p in view.prim_paths]
+            bad = [i for i, (p, e) in enumerate(zip(got, expected)) if not p.startswith(e)]
+            if len(got) != len(expected) or bad:
+                raise RuntimeError(f"object_per_env: {name} view out of environment order at {bad[:5]} ({got[:5]})")
 
     def _apply_per_environment_rigid_object_transforms(self) -> None:
         """Author independent USD transforms after cloning and before PhysX starts."""
