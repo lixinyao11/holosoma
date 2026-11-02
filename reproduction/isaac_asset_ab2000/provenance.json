@@ -1,0 +1,43 @@
+{
+  "baseline_commit": "c1f6176eb3e8dd7b58ffa8b63da7b4dad43b8ef8",
+  "asset_source_commit": "084fe0254245d218e5880fdadad0199c70a39e49",
+  "experiment": "holosoma-isaac-asset-ab2000-v1",
+  "conditions": {
+    "legacy": "configure(cfg, legacy): original legacy robot",
+    "mode15": "configure(cfg, mode15): same configuration with robot=with_mode15(cfg.robot)"
+  },
+  "overlay_archive_sha256": "2544a336ea994c2c039c526c3321f3d06bec4c6d180d41af26b771bbcad2e70f",
+  "overlay_manifest": "validated_overlay_manifest.json",
+  "configuration_switch_source_sha256": "2a790d1e664407ca8452c9e12b95548552061464a962ce59f55da7ab4581870d",
+  "configuration_switch": "configure() copied exactly; training instrumentation remains in archived experiment",
+  "validated": {
+    "smoke_iterations_each": 32,
+    "formal_iterations_each": 2000,
+    "labels": [
+      0,
+      1999
+    ],
+    "returncodes": [
+      0,
+      0
+    ],
+    "strict_configuration_gate_passed": true,
+    "four_rank_actual_full_DR_passed": true,
+    "dependencies_installed_for_this_commit": false
+  },
+  "run_contract": {
+    "global_envs": 8192,
+    "per_rank_envs": 2048,
+    "seed": "42+rank",
+    "steps_per_iteration": 24,
+    "control_hz": 50,
+    "physics_hz": 200,
+    "episode_limit_s": 10,
+    "track_ratio": 1,
+    "actor_obs": 565,
+    "critic_obs": 770
+  },
+  "evidence_root": "rp-4090-5:/data/pummpkin/holosoma-isaac-asset-ab2000-v1",
+  "local_evidence": "holosoma-isaac-asset-ab2000-v1/results/delivery_summary.json",
+  "scope": "M15 asset and motor/PD overlay only; no new DR, phase, collision exclusions, action processing, reward, termination, observation or PPO changes. Original HDMI entry remains unchanged; use configure(..., mode15) as in accepted experiment."
+}
