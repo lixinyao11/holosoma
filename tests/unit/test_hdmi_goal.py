@@ -59,7 +59,7 @@ def test_history_dimensions_for_dict_output_and_current_only():
     assert torch.equal(current.compute_group('a'),env.value)
 
 
-def test_existing_preset_unmodified_and_no_actor_reference_input():
+def test_existing_base_preset_unmodified_and_upstream_hand_reference_enabled():
     assert original.observation.groups['actor_obs'].terms['dof_pos'].history_offsets==()
     assert 'projected_gravity' not in original.observation.groups['actor_obs'].terms
     assert original.reward.terms['goal_object_reached_once'].func.endswith(':HybridGoalObjectReachedOnce')
@@ -77,7 +77,9 @@ def test_existing_preset_unmodified_and_no_actor_reference_input():
     for field in ("algo", "command", "observation", "reward", "termination"):
         assert asdict(getattr(teacher_before_m15, field)) == asdict(getattr(adapted, field))
     actor=adapted.observation.groups['actor_obs']
-    assert not any('ref' in k or 'phase' in k or 'motion' in k for k in actor.terms)
+    assert 'hybrid_hand_obj_pos_error' in actor.terms
+    assert 'object_to_hands_b' not in actor.terms
+    assert 'track_phase' not in actor.terms
     assert actor.terms['actions'].history_offsets==(0,1,2)
     assert actor.terms['projected_gravity'].history_offsets==(0,1,2,3,4,8,16)
     assert all('reference_term' in adapted.reward.terms[k].params for k in (
@@ -177,7 +179,7 @@ def test_raw_tracking_math_preserved_without_gen_constant(env,monkeypatch):
     assert torch.equal(rewards.track_only(env,'motion_global_body_lin_vel',1.),torch.tensor([0.,.8]))
 
 
-def test_actor_full_observation_dimensions_and_no_reference_dependency(env,monkeypatch):
+def test_actor_dimensions_and_track_only_hand_reference_dependency(env,monkeypatch):
     from holosoma.managers.observation.terms import wbt as obs_wbt
     from holosoma.managers.observation.terms.hdmi_goal import object_to_hands_b, object_ang_vel_b
     monkeypatch.setattr(obs_wbt,'_get_motion_command_and_assert_type',lambda e:e.cmd)
@@ -189,14 +191,22 @@ def test_actor_full_observation_dimensions_and_no_reference_dependency(env,monke
         _rigid_body_pos=torch.tensor([[[1.,0.,0.],[0.,1.,0.]]]).repeat(2,1,1))
     env.cmd.robot_ref_pos_w=torch.zeros(2,3)
     env.cmd.robot_ref_quat_w=env.base_quat.clone()
+    env.cmd.motion_cfg=SimpleNamespace(body_names_to_track=env.simulator._body_list)
+    env.cmd.robot_body_pos_w=env.simulator._rigid_body_pos.clone()
+    env.cmd.body_pos_w=env.cmd.robot_body_pos_w.clone()
+    env.cmd.object_pos_w=env.cmd.simulator_object_pos_w.clone()
+    env.cmd.object_quat_w=env.cmd.simulator_object_quat_w.clone()
     actor=replace(adapted.observation.groups['actor_obs'],enable_noise=False)
     m=ObservationManager(ObservationManagerCfg(groups={'actor':actor}),env,'cpu')
-    assert m.get_obs_dims()=={'actor':565}
+    assert m.get_obs_dims()=={'actor':571}
     before=m.compute_group('actor',modify_history=False)
-    # Arbitrary reference changes cannot affect the actor observation.
+    # Joint targets are not observed, but reference hand/object error is now observed.
     env.cmd.joint_pos=torch.full((2,29),99.)
-    env.cmd.object_pos_w=torch.full((2,3),99.)
     assert torch.equal(before,m.compute_group('actor',modify_history=False))
+    env.cmd.object_pos_w=torch.full((2,3),99.)
+    after=m.compute_group('actor',modify_history=False)
+    assert torch.equal(before[0],after[0])  # gen reference error is masked out
+    assert not torch.equal(before[1],after[1])  # track receives the reference error
     assert bool(torch.isfinite(before).all())
     assert torch.equal(object_to_hands_b(env)[0],torch.tensor([1.,0.,0.,0.,1.,0.]))
     # Object features use the current torso frame, independently of the base frame.

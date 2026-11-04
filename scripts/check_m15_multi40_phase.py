@@ -57,7 +57,7 @@ def check(root):
             'all_clip_lengths_offsets_boundaries_hold_passed':True,'partial_reset_passed':True,'gen_phase_zero_passed':True,
             'motion_dir':mc.motion_dir,'phase_term':term,'D_equals_C_except_actor_phase_and_name':True}
     return {'passed':True,'device':'cpu','splits':reports,'phase_meaning':'current local reference-frame progress, terminal hold=1, gen=0',
-        'expected_actor_dim':566,'expected_critic_dim':770,'dimension_delta':{'actor':1,'critic':0},
+        'expected_actor_dim':572,'expected_critic_dim':776,'dimension_delta':{'actor':1,'critic':0},
         'full_native_GPU_observation_dimensions_verified':False,'GPU_smoke':'not_run','policy_eval':'not_run'}
 
 

@@ -39,7 +39,7 @@ def make_config(asset_root, *, extra_dr=False, motion_set="single043", motion_sp
     name = names[motion_set] + ("_eval2" if motion_split == "eval" else "")
     terms["motion_command"] = replace(term, params=params)
     cfg = replace(cfg,
-        training=replace(cfg.training, name=name + ("_extra_dr" if extra_dr else "")),
+        training=replace(cfg.training, name=name + "_upstream_hands" + ("_extra_dr" if extra_dr else "")),
         command=replace(cfg.command, setup_terms=terms),
         robot=replace(cfg.robot, object=replace(cfg.robot.object,
             object_urdf_path=str(urdf), object_urdf_paths=[])))

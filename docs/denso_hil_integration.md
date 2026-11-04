@@ -23,7 +23,13 @@ config. Do not describe the entire runtime as byte-identical to the frozen
 experiments. Upstream launch-script NCCL settings do not replace the running
 AWS experiment's validated NCCL_PROTO=LL environment.
 
-## Extensions that are not equivalent duplicates
+## Later user-approved upstream adoption
+
+After the initial compatibility rebase (07742a4), the user selected the upstream
+joint reward and hand observations. See [the new profile](upstream_hands_profile.md).
+The original configuration-equality acceptance below applies to 07742a4 only.
+
+## Extensions retained at the initial compatibility rebase
 
 - Our joint reward selects a subset of joints, includes velocity tracking and
   removes the generation group's baseline. Upstream position tracking uses all

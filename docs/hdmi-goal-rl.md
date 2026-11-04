@@ -1,3 +1,8 @@
+> Historical experiment specification: the sections below describe the frozen
+> pre-adoption A/B/C/D runs. The candidate branch now uses upstream joint rewards
+> and hand observations; see [upstream adoption](upstream_hands_profile.md).
+> Old dimensions and no-reference-actor claims below do not describe the new default.
+
 # HDMI-informed goal-conditioned state teacher
 
 Current hardware baseline: the HDMI presets now use the pinned mode-15 asset and baseline motors/PD described in [hdmi-mode15.md](hdmi-mode15.md). The unchanged-assets/PD statement below describes the initial observation/reward-only patch, not this later hardware update.

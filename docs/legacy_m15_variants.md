@@ -1,3 +1,8 @@
+> Historical experiment specification: the sections below describe the frozen
+> pre-adoption A/B/C/D runs. The candidate branch now uses upstream joint rewards
+> and hand observations; see [upstream adoption](upstream_hands_profile.md).
+> Old dimensions and no-reference-actor claims below do not describe the new default.
+
 # M15 B/C/D configuration
 
 Source branch: `pummpkin/dev` (formerly `pummpkin/legacy`).

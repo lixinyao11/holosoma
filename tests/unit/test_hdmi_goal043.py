@@ -13,7 +13,7 @@ def test_043_changes_only_paths_and_run_name(tmp_path):
     before=deepcopy(asdict(base))
     actual=asdict(make_config(tmp_path))
     expected=deepcopy(before)
-    expected['training']['name']='g1_29dof_wbt_hdmi_goal043'
+    expected['training']['name']='g1_29dof_wbt_hdmi_goal043_upstream_hands'
     expected['command']['setup_terms']['motion_command']['params']['motion_config']['motion_file']=str(motion)
     expected['robot']['object']['object_urdf_path']=str(tmp_path/'suitcase.urdf')
     expected['robot']['object']['object_urdf_paths']=[]

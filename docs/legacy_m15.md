@@ -1,3 +1,8 @@
+> Historical experiment specification: the sections below describe the frozen
+> pre-adoption A/B/C/D runs. The candidate branch now uses upstream joint rewards
+> and hand observations; see [upstream adoption](upstream_hands_profile.md).
+> Old dimensions and no-reference-actor claims below do not describe the new default.
+
 # Legacy M15默认配置
 
 2026-11-02用户选择：M15资产/名义电机参数 + 四对自碰撞排除 + 电机DR + 物理子步延迟/低通滤波。

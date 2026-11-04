@@ -1,9 +1,11 @@
-"""Legacy HDMI teacher: M15 with the three independently switchable enhancements."""
+"""M15 teacher using upstream joint reward and hand/object observations."""
 from dataclasses import replace
 from math import pi
 from holosoma.config_types.observation import ObsHistoryAugCfg, ObsTermCfg
 from holosoma.config_types.reward import RewardTermCfg
 from holosoma.config_values.wbt.g1.experiment import g1_29dof_wbt_hybrid_object
+from holosoma.config_values.wbt.g1.observation import hand_obs_terms
+from holosoma.config_values.wbt.g1.reward import g1_29dof_wbt_reward_hybrid_object_hands
 
 base = g1_29dof_wbt_hybrid_object
 proprio_offsets = (0, 1, 2, 3, 4, 8, 16)
@@ -17,12 +19,13 @@ terms['projected_gravity'] = ObsTermCfg(
 )
 terms['actions'] = replace(terms['actions'], history_offsets=(0, 1, 2))
 terms['obj_ang_vel_b'] = ObsTermCfg(func='holosoma.managers.observation.terms.hdmi_goal:object_ang_vel_b')
-terms['object_to_hands_b'] = ObsTermCfg(func='holosoma.managers.observation.terms.hdmi_goal:object_to_hands_b')
+# Reuse upstream terms exactly: current wrists in object frame + reference error.
+terms.update(hand_obs_terms)
 groups = dict(base.observation.groups)
 groups['actor_obs'] = replace(actor, terms=terms, history_augmentation=ObsHistoryAugCfg())
 # Critic retains privileged reference terms, and gets the same history to value a history-conditioned actor.
 critic_terms = dict(groups['critic_obs'].terms)
-for name in ('base_ang_vel', 'dof_pos', 'dof_vel', 'projected_gravity', 'actions', 'obj_ang_vel_b', 'object_to_hands_b'):
+for name in ('base_ang_vel', 'dof_pos', 'dof_vel', 'projected_gravity', 'actions', 'obj_ang_vel_b', *hand_obs_terms):
     critic_terms[name] = replace(terms[name], noise=0.0)
 groups['critic_obs'] = replace(groups['critic_obs'], terms=critic_terms, history_augmentation=ObsHistoryAugCfg())
 
@@ -33,10 +36,8 @@ for name, term in list(reward_terms.items()):
         reward_terms[name] = replace(term, func='holosoma.managers.reward.terms.hdmi_goal:track_only',
                                     params={**term.params, 'reference_term': function_name.removeprefix('hybrid_')})
 reward_terms.update({
-    'joint_pos_tracking': RewardTermCfg(func='holosoma.managers.reward.terms.hdmi_goal:joint_tracking',
-                                      params={'sigma':0.25, 'velocity':False}, weight=0.5),
-    'joint_vel_tracking': RewardTermCfg(func='holosoma.managers.reward.terms.hdmi_goal:joint_tracking',
-                                      params={'sigma':2.5, 'velocity':True}, weight=0.5),
+    # Includes upstream all-joint selection, sigma/weight and hybrid gen baseline.
+    'motion_joint_pos_error_exp': g1_29dof_wbt_reward_hybrid_object_hands.terms['motion_joint_pos_error_exp'],
     'joint_speed_l2': RewardTermCfg(func='holosoma.managers.reward.terms.hdmi_goal:joint_speed_penalty', weight=-1e-4),
     'goal_progress': RewardTermCfg(func='holosoma.managers.reward.terms.hdmi_goal:GoalProgress',
                                  params={'pos_scale':1.0, 'ori_scale':pi}, weight=1.0),
@@ -59,7 +60,7 @@ termination_terms['bad_tracking'] = replace(bad_tracking, params={
 
 _hdmi_original = replace(
     base,
-    training=replace(base.training, name='g1_29dof_wbt_hybrid_object_hdmi'),
+    training=replace(base.training, name='g1_29dof_wbt_hybrid_object_hdmi_upstream_hands'),
     observation=replace(base.observation, groups=groups, history_augmentation=False),
     reward=replace(base.reward, terms=reward_terms),
     termination=replace(base.termination, terms=termination_terms),
