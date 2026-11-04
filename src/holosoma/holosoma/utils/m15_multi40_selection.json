@@ -1,0 +1,650 @@
+{
+  "schema_version": 1,
+  "selection_id": "umr-suitcase-train40-eval2-20261102-v1",
+  "status": "split_frozen_for_future_smoke_not_training_launched",
+  "dataset_root_desktop": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase",
+  "reference043": "omomo__sub4_suitcase_043.npz",
+  "geometry": {
+    "meshes/suitcase_collision_0.obj": "340b9987cf2f8ee5663834b80b5fac0ecdcec2c95b5794a24b6646d8e11873e5",
+    "meshes/suitcase_collision_1.obj": "9279d4183c0bc074cf6b951db18f63c22b87680e91d1dde9a2c4ead1f6c2e840",
+    "meshes/suitcase_collision_2.obj": "1bb1a6daaaa31b1a5c277ab78a733ec17dbbb6f3b7233060a42c96d9802beaba",
+    "meshes/suitcase_collision_3.obj": "fb76167ee98e1805d4658a3444d0499f8472464e1db40dba029d02779fa0c29b",
+    "meshes/suitcase_collision_4.obj": "46335b56cf1caeae3f1dc0540b672acaac5ae20477d66f3cecf61fe2697392f6",
+    "meshes/suitcase_collision_5.obj": "50120d8afdb7d63b81b9fcba797851229849c0eee24460b73ebf6d6a96ba68ab",
+    "meshes/suitcase_collision_6.obj": "ddf6179ffc38a58f6b35bf588d293358ed0061d04550daf3af1fe0ad5654c512",
+    "meshes/suitcase_collision_7.obj": "d7e57fc5611daf32346d269110cd64e31fbd539c2734866e3fb91e0a21ad7066",
+    "meshes/suitcase_collision_8.obj": "9abbfa83ec5d0070de20f0ab90f4ee1d2345353ff5faa644b25c71d81def8b0c",
+    "meshes/suitcase_collision_9.obj": "65cf01f505e38163f4e6c2addd6df93c5f792b6a0f980ac5895de3450229d13a",
+    "meshes/suitcase_collision_10.obj": "0cf225fb80fcf62a37c8f0ded7cb7ba477e25446a52cbb326c9486315c130ab0",
+    "meshes/suitcase_collision_11.obj": "29578816efcf35cabff08fc0c16a55a3b0ddb696ded673b2ec3b134bd6378aae",
+    "meshes/suitcase_collision_12.obj": "e3c94dac8c51e2600da279b22b2526ed6a075c474bf87bd90a583c9e125dfc33",
+    "meshes/suitcase_collision_13.obj": "71815e1a2184e954f1ad64e1a895fb871083b42bb14e5004f19a154095833061",
+    "meshes/suitcase_collision_14.obj": "6fe567ae5715a7c1c24741cbe964c8a875954834d7f8a291bb8f26c1ab49a7b0",
+    "meshes/suitcase_collision_15.obj": "d3ff8288452299f810425a6396e170e9ae6816346f5758d5a6d5eae4e457d47f",
+    "meshes/suitcase_collision_16.obj": "ca818985e81d107fc2dc4e6875ebc8a89dd835ad249e20b076bd6d36642a4018",
+    "meshes/suitcase_collision_17.obj": "8ccc266b8c881f48cedf5c8e71ab4142ebbae823d7fb47fafe9753c66dd3eed2",
+    "meshes/suitcase_collision_18.obj": "215c27df0403245a176f9dcf8fe833c74c0ffb246036bbd8202db54676794338",
+    "meshes/suitcase_collision_19.obj": "47af3142924418b13698d64bae13f567a4f612b2a68c26ca86655f858deea666",
+    "meshes/suitcase_collision_20.obj": "aaaca15fe5cd82cfbce737988f6a827b800ce5311d3ffef3caf7061db231000d",
+    "meshes/suitcase_collision_21.obj": "545aa9b71b71d9af369175605603b48f45a80680a0dc57162f8a52909178ce4c",
+    "meshes/suitcase_collision_22.obj": "a1caec0fc6237fd28c59b61b05005a9bb3b0ad3466d5b6f4683ffed03a901a28",
+    "meshes/suitcase_collision_23.obj": "00492a1251151f8c3ede29510a824416fa8ad317028d18dfe93a988833dffb55",
+    "meshes/suitcase_collision_24.obj": "485aa14cad90054312a10a29b892d54e5f62c9e4578dafa71239704bca85de4d",
+    "meshes/suitcase_collision_25.obj": "d04f2fbe74cdcffb4a6967aee270d7ae808e2643725abb6e9e22db6318c0b013",
+    "meshes/suitcase_collision_26.obj": "58b35d0fd1b1da005d2effd30f32099fdda58ae66ca51fae4f0fc90dfd905f68",
+    "meshes/suitcase_collision_27.obj": "48e57cdbd33dae8ebfb593d1b77796181c70854ca0c90f8937b7f43f18f30166",
+    "meshes/suitcase_collision_28.obj": "5cd13be97a6554abebc51b4354652a61304eb3d142f80d287e173a5d284abcb4",
+    "meshes/suitcase_collision_29.obj": "a7cfb7fa3c5b8c2034e4605a1609915bbaeaefb3cfbcbec4b9d2fabfdbdd603a",
+    "meshes/suitcase_collision_30.obj": "cf00751045571c854b63ddb4ea67f5df526a5f845f9e8700b2e5617b38c61ce6",
+    "suitcase.urdf": "ad655387ea74dc0c5d75bc6a0c0d7f8f152e5adb64e9e18f1eadec94fe52ec05"
+  },
+  "requires_explicit_loader_binding": true,
+  "train": [
+    {
+      "sequence": "sub1_suitcase_070",
+      "motion": "omomo__sub1_suitcase_070.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub1_suitcase_070.npz",
+      "sha256": "4ee15bcbbd8372766a5c94730b8db8a7ac482077f0135624f538d6bf0e5856ce",
+      "frames": 306,
+      "fps": 50.0,
+      "duration_s": 6.1,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub1_suitcase_071",
+      "motion": "omomo__sub1_suitcase_071.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub1_suitcase_071.npz",
+      "sha256": "6f24bcc0831fb933090126e4e9d0dd325e50d33b1475687052dbf8bce2e20c46",
+      "frames": 299,
+      "fps": 50.0,
+      "duration_s": 5.96,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub1_suitcase_072",
+      "motion": "omomo__sub1_suitcase_072.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub1_suitcase_072.npz",
+      "sha256": "2bcb34e6b4fd4f7004758f0f48284b813bb93f381cc3e26ef835f82426fb79e7",
+      "frames": 317,
+      "fps": 50.0,
+      "duration_s": 6.32,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub1_suitcase_073",
+      "motion": "omomo__sub1_suitcase_073.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub1_suitcase_073.npz",
+      "sha256": "931b6af2e86d8645867153b75eac17dc409b9a7a0826f524a0142f3d0f5ff00b",
+      "frames": 319,
+      "fps": 50.0,
+      "duration_s": 6.36,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub1_suitcase_075",
+      "motion": "omomo__sub1_suitcase_075.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub1_suitcase_075.npz",
+      "sha256": "9256fa828b75515c26edb69e8d20ccba882bb1c05b3081b18a4755aca3731a6a",
+      "frames": 362,
+      "fps": 50.0,
+      "duration_s": 7.22,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub1_suitcase_076",
+      "motion": "omomo__sub1_suitcase_076.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub1_suitcase_076.npz",
+      "sha256": "31415fdc2f93a3350999616e619331493226fc3a2378072f9447810e120cc4a3",
+      "frames": 351,
+      "fps": 50.0,
+      "duration_s": 7.0,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub1_suitcase_077",
+      "motion": "omomo__sub1_suitcase_077.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub1_suitcase_077.npz",
+      "sha256": "87dfec377b08df012f1cf540643ebc439c77a99e5ee3c12312bda957fc541977",
+      "frames": 322,
+      "fps": 50.0,
+      "duration_s": 6.42,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub1_suitcase_078",
+      "motion": "omomo__sub1_suitcase_078.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub1_suitcase_078.npz",
+      "sha256": "248ba401435450509920809825f5229b3828d388878fc9a0b09b8010e2013a21",
+      "frames": 327,
+      "fps": 50.0,
+      "duration_s": 6.52,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub1_suitcase_079",
+      "motion": "omomo__sub1_suitcase_079.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub1_suitcase_079.npz",
+      "sha256": "509ebaddccdbe5a445586f20e454c85596b56c54bd78ada72fc975abeb0249f6",
+      "frames": 284,
+      "fps": 50.0,
+      "duration_s": 5.66,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub14_suitcase_004",
+      "motion": "omomo__sub14_suitcase_004.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub14_suitcase_004.npz",
+      "sha256": "5ba32922c5646afad92916785e24456706456c72918f76a8ef7130a7dd7a6d26",
+      "frames": 347,
+      "fps": 50.0,
+      "duration_s": 6.92,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub14_suitcase_005",
+      "motion": "omomo__sub14_suitcase_005.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub14_suitcase_005.npz",
+      "sha256": "1b2f904f63153e4a087b3219823e6553bc20bf287cd7a50a6aec1c5b9a417e27",
+      "frames": 304,
+      "fps": 50.0,
+      "duration_s": 6.06,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub14_suitcase_007",
+      "motion": "omomo__sub14_suitcase_007.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub14_suitcase_007.npz",
+      "sha256": "8d3fbddca14f154f5e319d74ed4779158207146f7b9222d22bed9093007eae63",
+      "frames": 297,
+      "fps": 50.0,
+      "duration_s": 5.92,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub14_suitcase_008",
+      "motion": "omomo__sub14_suitcase_008.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub14_suitcase_008.npz",
+      "sha256": "13422f82b2ae13407558925800dd81aadf924d91e7c564a3e6d41f8ec6b885f9",
+      "frames": 279,
+      "fps": 50.0,
+      "duration_s": 5.56,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub14_suitcase_009",
+      "motion": "omomo__sub14_suitcase_009.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub14_suitcase_009.npz",
+      "sha256": "85f0cb6a001b9087020705f586bafa00144794b32ab810a94d44fcf1541eb6ed",
+      "frames": 207,
+      "fps": 50.0,
+      "duration_s": 4.12,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub15_suitcase_007",
+      "motion": "omomo__sub15_suitcase_007.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_007.npz",
+      "sha256": "10039a89bd28fb188211f689b09bd97842f9a5f9a65081b71a42824d0a492d4c",
+      "frames": 307,
+      "fps": 50.0,
+      "duration_s": 6.12,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub17_suitcase_005",
+      "motion": "omomo__sub17_suitcase_005.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub17_suitcase_005.npz",
+      "sha256": "d14f958f8e31820fe236a7a1c8bc08a57fe1487be9d9be00d4ddc1fcc2d9f7b6",
+      "frames": 327,
+      "fps": 50.0,
+      "duration_s": 6.52,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub17_suitcase_006",
+      "motion": "omomo__sub17_suitcase_006.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub17_suitcase_006.npz",
+      "sha256": "00979d1c83bb5a8e2102b6926f76f45db661a75cb0f1adf867a3321d6c62b1d0",
+      "frames": 377,
+      "fps": 50.0,
+      "duration_s": 7.52,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub17_suitcase_007",
+      "motion": "omomo__sub17_suitcase_007.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub17_suitcase_007.npz",
+      "sha256": "3d57f04eb451ed61fcf082625a1775d234bc86f9f8970d1d4a171d1da3f194b9",
+      "frames": 261,
+      "fps": 50.0,
+      "duration_s": 5.2,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub17_suitcase_010",
+      "motion": "omomo__sub17_suitcase_010.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub17_suitcase_010.npz",
+      "sha256": "fc4fe32f5f1e8bb31db5abc0bcb8a3adc10eb98c259d323eda591186ed82db9d",
+      "frames": 292,
+      "fps": 50.0,
+      "duration_s": 5.82,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub4_suitcase_007",
+      "motion": "omomo__sub4_suitcase_007.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub4_suitcase_007.npz",
+      "sha256": "5ead06d1eea703b0eaabc7f8526c5df53c4064b03a830b22c65bbf2828cb91b3",
+      "frames": 337,
+      "fps": 50.0,
+      "duration_s": 6.72,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub4_suitcase_008",
+      "motion": "omomo__sub4_suitcase_008.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub4_suitcase_008.npz",
+      "sha256": "b0abf76c4b7b62442e298b68c8e91cc28a4c59995f840a37ae232374d59cb049",
+      "frames": 352,
+      "fps": 50.0,
+      "duration_s": 7.02,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub4_suitcase_042",
+      "motion": "omomo__sub4_suitcase_042.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub4_suitcase_042.npz",
+      "sha256": "8be3229eca3040148167fa7a1fb357fbfacc35ee56af995e8b7fbbb2e42450d8",
+      "frames": 394,
+      "fps": 50.0,
+      "duration_s": 7.86,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub4_suitcase_043",
+      "motion": "omomo__sub4_suitcase_043.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub4_suitcase_043.npz",
+      "sha256": "d8f94cef6669d29dba1e7a2bceb3cdefeaba2d3fe9edebcd5da0f0922ec9f53c",
+      "frames": 429,
+      "fps": 50.0,
+      "duration_s": 8.56,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub4_suitcase_044",
+      "motion": "omomo__sub4_suitcase_044.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub4_suitcase_044.npz",
+      "sha256": "726873b0299c6795d62e5347bfec7f28bae8c934165e3e037e5348052791ddc1",
+      "frames": 426,
+      "fps": 50.0,
+      "duration_s": 8.5,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub4_suitcase_045",
+      "motion": "omomo__sub4_suitcase_045.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub4_suitcase_045.npz",
+      "sha256": "11059ae01a7ad716bcbc579ed73a6c67eba137b0d08e1c595f3f522806a237f3",
+      "frames": 401,
+      "fps": 50.0,
+      "duration_s": 8.0,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub4_suitcase_047",
+      "motion": "omomo__sub4_suitcase_047.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub4_suitcase_047.npz",
+      "sha256": "910358d063b0c551e7b560020711222e154c4a96c8d788b341b5119d67ab50fc",
+      "frames": 471,
+      "fps": 50.0,
+      "duration_s": 9.4,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub5_suitcase_016",
+      "motion": "omomo__sub5_suitcase_016.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub5_suitcase_016.npz",
+      "sha256": "dd17a1fdf403d23a78b26351721b16ebf03e422b96230e218b76707c09bb9f43",
+      "frames": 324,
+      "fps": 50.0,
+      "duration_s": 6.46,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub5_suitcase_046",
+      "motion": "omomo__sub5_suitcase_046.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub5_suitcase_046.npz",
+      "sha256": "4da87b85dcb222e76d7f3797f3f4f1b03675a8b6d60adcb29faa8a0155836309",
+      "frames": 429,
+      "fps": 50.0,
+      "duration_s": 8.56,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub5_suitcase_052",
+      "motion": "omomo__sub5_suitcase_052.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub5_suitcase_052.npz",
+      "sha256": "2874f346c6f375802800e6d3b96408e10e72ac86b927298793e9c733c62719f5",
+      "frames": 407,
+      "fps": 50.0,
+      "duration_s": 8.12,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_007",
+      "motion": "omomo__sub8_suitcase_007.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_007.npz",
+      "sha256": "7678fc352a97436006461aef49ba9d4ddffa7c45e5f9a77be9a4e77ef5912793",
+      "frames": 412,
+      "fps": 50.0,
+      "duration_s": 8.22,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_008",
+      "motion": "omomo__sub8_suitcase_008.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_008.npz",
+      "sha256": "040c24d4ac4d18dac45907582b680bed38dc4e4dba1574f2393e5a5033bae7f8",
+      "frames": 296,
+      "fps": 50.0,
+      "duration_s": 5.9,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_009",
+      "motion": "omomo__sub8_suitcase_009.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_009.npz",
+      "sha256": "d3fb2335365f916020916e299d43e21187966b1a7486a552367410f1b43605f3",
+      "frames": 326,
+      "fps": 50.0,
+      "duration_s": 6.5,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_010",
+      "motion": "omomo__sub8_suitcase_010.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_010.npz",
+      "sha256": "a9e950ac1ff7f8c2ca74c86dffbb0cef6f4c7c1b45d98162b3d2d6e0591699a0",
+      "frames": 349,
+      "fps": 50.0,
+      "duration_s": 6.96,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_011",
+      "motion": "omomo__sub8_suitcase_011.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_011.npz",
+      "sha256": "ccb81ed7921f09dedbdd7506d8f5bf37d1bb408ab88f95d2715c5fa1444c137d",
+      "frames": 351,
+      "fps": 50.0,
+      "duration_s": 7.0,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_012",
+      "motion": "omomo__sub8_suitcase_012.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_012.npz",
+      "sha256": "0ca38020d2e2ee22309aed452d8c77a95927b3f24ecc8d925dc0c4c90aff9bc7",
+      "frames": 299,
+      "fps": 50.0,
+      "duration_s": 5.96,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_013",
+      "motion": "omomo__sub8_suitcase_013.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_013.npz",
+      "sha256": "a53405e27dea5a017a0b8878e08cbacea1abcf23d8a3514336130843b58abefa",
+      "frames": 316,
+      "fps": 50.0,
+      "duration_s": 6.3,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_042",
+      "motion": "omomo__sub8_suitcase_042.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_042.npz",
+      "sha256": "c6752cfc329c5a2013780377720a6ea603beb688627361b5542393bcd1c2fb98",
+      "frames": 259,
+      "fps": 50.0,
+      "duration_s": 5.16,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_044",
+      "motion": "omomo__sub8_suitcase_044.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_044.npz",
+      "sha256": "31628c9bb2f6ebeed6e69995a3b1985d7973407b24cddc143cdd1c1f9f8f0ede",
+      "frames": 339,
+      "fps": 50.0,
+      "duration_s": 6.76,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_045",
+      "motion": "omomo__sub8_suitcase_045.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_045.npz",
+      "sha256": "7e45cd355974d0853f3bf0812bde3c96f43ac21985479cdee89137fc6ac75106",
+      "frames": 391,
+      "fps": 50.0,
+      "duration_s": 7.8,
+      "split_reason_zh": "保留已复核候选资格"
+    },
+    {
+      "sequence": "sub8_suitcase_046",
+      "motion": "omomo__sub8_suitcase_046.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_046.npz",
+      "sha256": "c5ac27afbdecd3b41917cc8ffc063d42953ac6a7d1dae2f01cb47356fc555e62",
+      "frames": 249,
+      "fps": 50.0,
+      "duration_s": 4.96,
+      "split_reason_zh": "保留已复核候选资格"
+    }
+  ],
+  "eval": [
+    {
+      "sequence": "sub14_suitcase_006",
+      "motion": "omomo__sub14_suitcase_006.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub14_suitcase_006.npz",
+      "sha256": "c39fac32bbd6a929f12a60eae1f4b4be6e2a7f60a4280a665bad6a82e573531c",
+      "frames": 272,
+      "fps": 50.0,
+      "duration_s": 5.42,
+      "split_reason_zh": "沿用已定义held-out，不进入训练。"
+    },
+    {
+      "sequence": "sub8_suitcase_043",
+      "motion": "omomo__sub8_suitcase_043.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub8_suitcase_043.npz",
+      "sha256": "c5d635e9a5c471be3cb8ed5c80be55fe7651aef279214b1b466968dcc8716f3e",
+      "frames": 252,
+      "fps": 50.0,
+      "duration_s": 5.02,
+      "split_reason_zh": "新增独立motion评估：阶段完整，首尾箱底约2.4/2.3cm，片尾稳定1.12s；历史UMR global MPJPE约35.06mm。与另一评估条来自不同参与者，但训练仍包含这两名参与者。不是subject-level held-out。"
+    }
+  ],
+  "reserve": [
+    {
+      "sequence": "sub5_suitcase_051",
+      "motion": "omomo__sub5_suitcase_051.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub5_suitcase_051.npz",
+      "sha256": "10f7c99dcc0584383e6de52f0f459b8cbbc80ddaab75d937880f4c71c4fccba1",
+      "frames": 409,
+      "fps": 50.0,
+      "duration_s": 8.16,
+      "split_reason_zh": "43条候选中单列1条备用，以满足40训练+2评估；此条历史UMR global MPJPE为106.1851mm，为候选最高，且与052均为浅抬/弯腰风格。不是新判定缺阶段，也不是Isaac评估失败。"
+    }
+  ],
+  "exclude_for_now": [
+    {
+      "sequence": "sub14_suitcase_010",
+      "motion": "omomo__sub14_suitcase_010.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub14_suitcase_010.npz",
+      "sha256": "a64a749674626c2e72dd724b27a9e944453837f1a9f513b05c834885a4a13f4e",
+      "frames": 266,
+      "fps": 50.0,
+      "duration_s": 5.3,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_008",
+      "motion": "omomo__sub15_suitcase_008.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_008.npz",
+      "sha256": "b95bf893be9d6e8f0f299bc65b15cba6aa65222657c90a99220e74ccb28798d3",
+      "frames": 152,
+      "fps": 50.0,
+      "duration_s": 3.02,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_009",
+      "motion": "omomo__sub15_suitcase_009.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_009.npz",
+      "sha256": "d342a5007444aea7970d4c1e7d6256df62c9b65e1b0f33e83cd94bffb36343a4",
+      "frames": 134,
+      "fps": 50.0,
+      "duration_s": 2.66,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_010",
+      "motion": "omomo__sub15_suitcase_010.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_010.npz",
+      "sha256": "8f7a99906155a0279437f1c1d1ae01deb15e77f60899fc2628c387137c2b09cc",
+      "frames": 179,
+      "fps": 50.0,
+      "duration_s": 3.56,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_011",
+      "motion": "omomo__sub15_suitcase_011.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_011.npz",
+      "sha256": "3958fe325c17a09622a49c82a47df5e9942a02002cb3f21a5e6f0d230ee5f753",
+      "frames": 161,
+      "fps": 50.0,
+      "duration_s": 3.2,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_012",
+      "motion": "omomo__sub15_suitcase_012.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_012.npz",
+      "sha256": "2629c62091f4952163d8451dff1ec934aa0e60d3b3e0ff36b77e0224088f780a",
+      "frames": 142,
+      "fps": 50.0,
+      "duration_s": 2.82,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_013",
+      "motion": "omomo__sub15_suitcase_013.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_013.npz",
+      "sha256": "9a2a4dfbaeaa927e7c639143b67e829342bac76edc00bb0cc85be74ef3113154",
+      "frames": 162,
+      "fps": 50.0,
+      "duration_s": 3.22,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_014",
+      "motion": "omomo__sub15_suitcase_014.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_014.npz",
+      "sha256": "0ef1ad5d4157e53907fa0e4020a7ddd859d31805285954dd0af74bbe20185cc4",
+      "frames": 161,
+      "fps": 50.0,
+      "duration_s": 3.2,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_051",
+      "motion": "omomo__sub15_suitcase_051.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_051.npz",
+      "sha256": "1fd0fba3742186143931281af306045d565e40dfeb75e7f9d782efe59dbf129d",
+      "frames": 304,
+      "fps": 50.0,
+      "duration_s": 6.06,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_052",
+      "motion": "omomo__sub15_suitcase_052.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_052.npz",
+      "sha256": "aa32836ce162d6b819e9adb0983f47608b7d4caa5711fec2f36fd168d7e66835",
+      "frames": 196,
+      "fps": 50.0,
+      "duration_s": 3.9,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_053",
+      "motion": "omomo__sub15_suitcase_053.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_053.npz",
+      "sha256": "61e982557c262d891cbada331d62adfb000d34cfbf7b86b5187bcedc98485471",
+      "frames": 202,
+      "fps": 50.0,
+      "duration_s": 4.02,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_054",
+      "motion": "omomo__sub15_suitcase_054.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_054.npz",
+      "sha256": "4419d803bc170c5e21eb664771174a4fe9bcd3744ac789c3b813628a539c2a09",
+      "frames": 171,
+      "fps": 50.0,
+      "duration_s": 3.4,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub15_suitcase_055",
+      "motion": "omomo__sub15_suitcase_055.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub15_suitcase_055.npz",
+      "sha256": "22484763729487767e53f3bf194fb40214cddadc42fc98ecc796d002a03f2b59",
+      "frames": 147,
+      "fps": 50.0,
+      "duration_s": 2.92,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub4_suitcase_011",
+      "motion": "omomo__sub4_suitcase_011.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub4_suitcase_011.npz",
+      "sha256": "ce02c866df989aff709e105625404ce0281f011f7f82583a456bce1778ff141b",
+      "frames": 301,
+      "fps": 50.0,
+      "duration_s": 6.0,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub5_suitcase_009",
+      "motion": "omomo__sub5_suitcase_009.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub5_suitcase_009.npz",
+      "sha256": "bd75292f8f0faac621d41b054007c16600f62522533c08bbd06f79e5fb30e8d0",
+      "frames": 354,
+      "fps": 50.0,
+      "duration_s": 7.06,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub5_suitcase_043",
+      "motion": "omomo__sub5_suitcase_043.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub5_suitcase_043.npz",
+      "sha256": "794d76d6b09ebdd01661d1ba9b53da559a97ab3fca74ef6fc542cf49238b739b",
+      "frames": 321,
+      "fps": 50.0,
+      "duration_s": 6.4,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    },
+    {
+      "sequence": "sub5_suitcase_045",
+      "motion": "omomo__sub5_suitcase_045.npz",
+      "path": "/mnt/nas/jyuntins/denso/data/holosoma/omomo/umr/suitcase/motions/omomo__sub5_suitcase_045.npz",
+      "sha256": "0f5818ecd4e651561eb688433892627f420621bc3ffa01e1018d152e8201277f",
+      "frames": 594,
+      "fps": 50.0,
+      "duration_s": 11.86,
+      "split_reason_zh": "沿用阶段不完整/边界/收尾问题的暂排决定"
+    }
+  ]
+}

@@ -66,11 +66,15 @@ _hdmi_original = replace(
 )
 
 
-def make_legacy_m15_config(*, collision_exclusions=True, motor_dr=True, delay_filter=True):
+def make_legacy_m15_config(*, collision_exclusions=True, motor_dr=True, delay_filter=True, extra_dr=False):
     """Build from the original teacher so switches can be independently disabled."""
     from holosoma.config_values.wbt.g1.legacy_m15 import with_legacy_m15
-    return with_legacy_m15(_hdmi_original, collision_exclusions=collision_exclusions,
+    cfg = with_legacy_m15(_hdmi_original, collision_exclusions=collision_exclusions,
                           motor_dr=motor_dr, delay_filter=delay_filter)
+    if extra_dr:
+        from holosoma.config_values.wbt.g1.legacy_extra_dr import with_extra_dr
+        cfg = with_extra_dr(cfg)
+    return cfg
 
 
 # The established HDMI/goal043 entry points now use the approved legacy profile.

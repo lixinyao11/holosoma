@@ -11,6 +11,7 @@ from holosoma.managers.observation.manager import ObservationManager
 from holosoma.managers.reward.terms import hdmi_goal as rewards
 from holosoma.config_values.wbt.g1.experiment import g1_29dof_wbt_hybrid_object as original
 from holosoma.config_values.wbt.g1.hdmi_goal import g1_29dof_wbt_hybrid_object_hdmi as adapted
+from holosoma.config_values.wbt.g1.hdmi_goal import _hdmi_original as teacher_before_m15
 
 
 def value(env):
@@ -63,7 +64,8 @@ def test_existing_preset_unmodified_and_no_actor_reference_input():
     assert 'projected_gravity' not in original.observation.groups['actor_obs'].terms
     assert original.reward.terms['goal_object_reached_once'].func.endswith(':HybridGoalObjectReachedOnce')
     assert asdict(original.algo)==asdict(adapted.algo)
-    assert asdict(original.robot)==asdict(adapted.robot)
+    # The unenhanced teacher preserves physics; the public preset now adopts M15.
+    assert asdict(original.robot)==asdict(teacher_before_m15.robot)
     assert asdict(original.command)==asdict(adapted.command)
     expected_termination=asdict(original.termination)
     for key in ('gen_bad_ref_pos_z_threshold','gen_bad_ref_pos_xyz_threshold',
@@ -71,7 +73,9 @@ def test_existing_preset_unmodified_and_no_actor_reference_input():
         assert expected_termination['terms']['bad_tracking']['params'][key] is not None
         expected_termination['terms']['bad_tracking']['params'][key]=None
     assert expected_termination==asdict(adapted.termination)
-    assert asdict(original.randomization)==asdict(adapted.randomization)
+    assert asdict(original.randomization)==asdict(teacher_before_m15.randomization)
+    for field in ("algo", "command", "observation", "reward", "termination"):
+        assert asdict(getattr(teacher_before_m15, field)) == asdict(getattr(adapted, field))
     actor=adapted.observation.groups['actor_obs']
     assert not any('ref' in k or 'phase' in k or 'motion' in k for k in actor.terms)
     assert actor.terms['actions'].history_offsets==(0,1,2)
