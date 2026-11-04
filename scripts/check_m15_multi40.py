@@ -6,7 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace,MethodType
 import numpy as np
 import torch
-from holosoma.config_values.wbt.g1.hdmi_goal043 import make_config,make_eval_config
+from holosoma.config_values.wbt.g1.m15 import make_config,make_eval_config
 from holosoma.managers.command.terms.wbt import MotionCommand,AdaptiveTimestepsSampler,FAKE_BODY_NAME_ALIASES
 from holosoma.utils.m15_motion_sets import load_multi40_selection,validate_multi40
 

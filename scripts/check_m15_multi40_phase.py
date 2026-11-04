@@ -4,7 +4,7 @@ from dataclasses import asdict
 from pathlib import Path
 from types import SimpleNamespace as NS
 import torch
-from holosoma.config_values.wbt.g1.hdmi_goal043 import make_config
+from holosoma.config_values.wbt.g1.m15 import make_config
 from holosoma.managers.command.terms.wbt import MotionCommand,AdaptiveTimestepsSampler,FAKE_BODY_NAME_ALIASES
 from holosoma.managers.observation.terms.track_phase import track_phase
 

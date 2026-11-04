@@ -46,3 +46,5 @@ Validation covers direct upstream preset equality, all-joint reward including
 ankles and generation masking, rotated object-frame hand features, reference
 masking, translation invariance, actor dimensions and the existing M15/DR/
 multi40/phase regressions. GPU smoke and learning benefit are not yet verified.
+
+Configuration entry: see [unified M15 config](m15_config.md).
