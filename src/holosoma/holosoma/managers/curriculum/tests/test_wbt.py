@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+import pytest
 import torch
 
 from holosoma.managers.command.terms.wbt import HybridMotionCommand
@@ -291,6 +292,41 @@ def test_hybrid_object_goal_noise_curriculum_per_object_group_steps_each_group_b
     curriculum.on_rollout_end(1)
     assert torch.allclose(curriculum.group_success_ema, torch.tensor([1.0, 0.5]))
     assert torch.allclose(curriculum.group_scale, torch.tensor([0.4, 0.3]))
+
+
+def test_hybrid_object_goal_noise_curriculum_initial_group_scales_apply_from_the_first_training_step():
+    motion_command = object.__new__(HybridMotionCommand)
+    motion_command.device = torch.device("cpu")
+    motion_command.num_envs = 4
+    motion_command.motion = SimpleNamespace(has_object=True)
+    motion_command.num_object_groups = 2
+    motion_command.env_object_group = torch.tensor([0, 0, 1, 1], dtype=torch.long)
+    motion_command.set_object_goal_noise_curriculum_scale = lambda scale: None
+    motion_command.set_object_goal_noise_group_scales = lambda scales: setattr(
+        motion_command, "applied_group_scales", scales.clone()
+    )
+    motion_command.reapply_gen_object_goal_noise = lambda env_ids: None
+    curriculum = _make_hybrid_object_goal_noise_curriculum(
+        params={"per_object_group": True, "initial_group_scales": "0.94,0.2"},
+        motion_command=motion_command,
+        extras={"episode": {}},
+    )
+
+    curriculum.setup()
+    # set up, but not given to the motion command until training starts (an evaluation keeps its own scale)
+    assert torch.allclose(curriculum.group_scale, torch.tensor([0.94, 0.3]))  # clamped to min_scale
+    assert not hasattr(motion_command, "applied_group_scales")
+    curriculum.on_training_step(0)
+    assert torch.allclose(motion_command.applied_group_scales, torch.tensor([0.94, 0.3]))
+    assert torch.isclose(curriculum.current_scale, torch.tensor(0.62))
+
+    bad = _make_hybrid_object_goal_noise_curriculum(
+        params={"per_object_group": True, "initial_group_scales": "0.5,0.5,0.5"},
+        motion_command=motion_command,
+        extras={"episode": {}},
+    )
+    with pytest.raises(ValueError, match="initial_group_scales"):
+        bad.setup()
 
 
 def test_hybrid_object_goal_noise_group_scales_scale_each_environment_goal_noise():

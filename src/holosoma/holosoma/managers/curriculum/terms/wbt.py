@@ -28,6 +28,10 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
         # One scale per object group (motion_dir_object_groups), each stepped by its own groups' success: with one
         # shared scale a hard object holds the mean success between the thresholds and the range never widens.
         self.per_object_group = bool(params.get("per_object_group", False))
+        # Starting scale per object group, comma-separated (e.g. "0.94,0.3,0.42,0.72"), to resume a per_object_group run:
+        # the curriculum state is not in the checkpoint. Empty: initial_scale for every group.
+        self.initial_group_scales = str(params.get("initial_group_scales", "") or "")
+        self._push_group_scales = False
 
         if self.min_scale > self.max_scale:
             raise ValueError(
@@ -101,6 +105,18 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
         if self.per_object_group:
             self.num_groups = int(getattr(motion_command, "num_object_groups", 1))
             self._init_group_state()
+            if self.initial_group_scales:
+                scales = [float(s) for s in self.initial_group_scales.split(",")]
+                if len(scales) != self.num_groups:
+                    raise ValueError(
+                        f"{self._term_name()} initial_group_scales has {len(scales)} values for "
+                        f"{self.num_groups} object groups."
+                    )
+                self.group_scale = torch.tensor(scales, device=self.env.device, dtype=torch.float32).clamp(
+                    self.min_scale, self.max_scale
+                )
+                # given to the motion command at the first training step, so an evaluation keeps its own scale
+                self._push_group_scales = True
 
     def reset(self, env_ids) -> None:
         if not self.enabled or self.motion_command is None:
@@ -137,6 +153,12 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
         del log_dir, is_main_process
         if not self.enabled or self.motion_command is None:
             return
+        if self._push_group_scales:
+            self._push_group_scales = False
+            self.current_scale = self.group_scale.mean()
+            self._apply_scale_to_targets(self.current_scale)
+            self.motion_command.set_object_goal_noise_group_scales(self.group_scale)
+            self._reapply_goal_noise_targets(None)
         self.collect_rollout = self._should_collect_rollout(int(training_step))
         self.accumulated_success_sum.zero_()
         self.accumulated_success_count.zero_()
