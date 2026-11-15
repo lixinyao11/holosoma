@@ -3287,20 +3287,42 @@ class HybridMotionCommand(MotionCommand):
             return
         self._apply_gen_object_goal_noise(gen_env_ids)
 
+    def set_object_goal_noise_group_scales(self, scales: torch.Tensor | None) -> None:
+        """Per object group curriculum scales (HybridGenNoiseCurriculum per_object_group): environment e's object goal
+        noise uses scales[env_object_group[e]] in place of the shared scale; None goes back to the shared scale."""
+        self._object_goal_noise_group_scales = (
+            None
+            if scales is None
+            else torch.clamp(torch.as_tensor(scales, dtype=torch.float32, device=self.device), min=0.0)
+        )
+
     def _apply_gen_object_goal_noise(self, env_ids: torch.Tensor) -> None:
         assert self.hybrid_cfg is not None
         if env_ids.numel() == 0 or not self.motion.has_object:
             return
-        self._apply_gen_goal_noise(
-            env_ids,
-            exact_goal_pos_w=self._exact_goal_object_pos_w[env_ids],
-            exact_goal_quat_w=self._exact_goal_object_quat_w[env_ids],
-            noise_cfg=self.hybrid_cfg.object_goal_noise,
-            active_goal_pos_w=self._active_goal_object_pos_w,
-            active_goal_quat_w=self._active_goal_object_quat_w,
-            pos_axis_scale_xyz=self.object_goal_noise_pos_axis_scale,
-            rpy_axis_scale=self.object_goal_noise_rpy_axis_scale,
-        )
+        group_scales = getattr(self, "_object_goal_noise_group_scales", None)
+        if group_scales is not None:
+            # the shared scale multiplies the x / y position and yaw std and clip, i.e. the clamped noise itself
+            env_scale = group_scales[self.env_object_group[env_ids]]
+            pos_noise, rpy_noise = self._sample_goal_noise_pos_rpy(env_ids.numel(), self.hybrid_cfg.object_goal_noise)
+            pos_noise[:, :2] *= env_scale.unsqueeze(1)
+            rpy_noise[:, 2] *= env_scale
+            quat_noise = quat_normalize(quat_from_euler_xyz(rpy_noise[:, 0], rpy_noise[:, 1], rpy_noise[:, 2]))
+            self._active_goal_object_pos_w[env_ids] = self._exact_goal_object_pos_w[env_ids] + pos_noise
+            self._active_goal_object_quat_w[env_ids] = quat_normalize(
+                quat_mul(quat_noise, self._exact_goal_object_quat_w[env_ids], w_last=True)
+            )
+        else:
+            self._apply_gen_goal_noise(
+                env_ids,
+                exact_goal_pos_w=self._exact_goal_object_pos_w[env_ids],
+                exact_goal_quat_w=self._exact_goal_object_quat_w[env_ids],
+                noise_cfg=self.hybrid_cfg.object_goal_noise,
+                active_goal_pos_w=self._active_goal_object_pos_w,
+                active_goal_quat_w=self._active_goal_object_quat_w,
+                pos_axis_scale_xyz=self.object_goal_noise_pos_axis_scale,
+                rpy_axis_scale=self.object_goal_noise_rpy_axis_scale,
+            )
         if self._fixed_size_randomization_enabled():
             reference_pos, reference_quat = self._raw_object_motion_poses(self.goal_time_steps[env_ids], env_ids)
             self._active_goal_object_pos_w[env_ids] = self._correct_scaled_object_positions(
@@ -3654,6 +3676,13 @@ class HybridMotionCommand(MotionCommand):
         return self._sample_goal_noise(num_envs, scaled_noise_cfg)
 
     def _sample_goal_noise(self, num_envs: int, noise_cfg: GoalPoseNoiseConfig) -> tuple[torch.Tensor, torch.Tensor]:
+        pos_noise, rpy_noise = self._sample_goal_noise_pos_rpy(num_envs, noise_cfg)
+        quat_noise = quat_from_euler_xyz(rpy_noise[:, 0], rpy_noise[:, 1], rpy_noise[:, 2])
+        return pos_noise, quat_normalize(quat_noise)
+
+    def _sample_goal_noise_pos_rpy(
+        self, num_envs: int, noise_cfg: GoalPoseNoiseConfig
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         pos_std = torch.tensor(noise_cfg.pos_std_xyz, dtype=torch.float32, device=self.device).unsqueeze(0)
         pos_clip = torch.tensor(noise_cfg.pos_clip_xyz, dtype=torch.float32, device=self.device).unsqueeze(0)
         pos_noise = torch.randn(num_envs, 3, device=self.device, dtype=torch.float32) * pos_std
@@ -3663,6 +3692,4 @@ class HybridMotionCommand(MotionCommand):
         rpy_clip = torch.tensor(noise_cfg.rpy_clip, dtype=torch.float32, device=self.device).unsqueeze(0)
         rpy_noise = torch.randn(num_envs, 3, device=self.device, dtype=torch.float32) * rpy_std
         rpy_noise = torch.clamp(rpy_noise, min=-rpy_clip, max=rpy_clip)
-
-        quat_noise = quat_from_euler_xyz(rpy_noise[:, 0], rpy_noise[:, 1], rpy_noise[:, 2])
-        return pos_noise, quat_normalize(quat_noise)
+        return pos_noise, rpy_noise

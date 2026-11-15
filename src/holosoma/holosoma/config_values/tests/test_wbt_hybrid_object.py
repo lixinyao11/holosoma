@@ -108,6 +108,7 @@ def test_hybrid_object_keeps_only_the_object_goal_curriculum():
         "success_threshold_down": 0.80,
         "update_interval": 20,
         "ema_alpha": 0.5,
+        "per_object_group": False,
     }
 
 

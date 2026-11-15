@@ -25,6 +25,9 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
         self.success_threshold_down = float(params.get("success_threshold_down", 0.80))
         self.update_interval = max(1, int(params.get("update_interval", 20)))
         self.ema_alpha = float(params.get("ema_alpha", 0.5))
+        # One scale per object group (motion_dir_object_groups), each stepped by its own groups' success: with one
+        # shared scale a hard object holds the mean success between the thresholds and the range never widens.
+        self.per_object_group = bool(params.get("per_object_group", False))
 
         if self.min_scale > self.max_scale:
             raise ValueError(
@@ -69,6 +72,16 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
         self.accumulated_success_count = torch.zeros((), device=env.device, dtype=torch.long)
         self.latest_batch_success = torch.zeros((), device=env.device, dtype=torch.float32)
         self.collect_rollout = False
+        self.num_groups = 1
+        self._init_group_state()
+
+    def _init_group_state(self) -> None:
+        device = self.env.device
+        self.group_scale = self.current_scale.repeat(self.num_groups)
+        self.group_success_ema = torch.zeros(self.num_groups, device=device, dtype=torch.float32)
+        self.group_has_success_ema = torch.zeros(self.num_groups, device=device, dtype=torch.bool)
+        self.group_success_sum = torch.zeros(self.num_groups, device=device, dtype=torch.float32)
+        self.group_success_count = torch.zeros(self.num_groups, device=device, dtype=torch.long)
 
     def setup(self) -> None:
         if not self.enabled:
@@ -85,6 +98,9 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
 
         self.motion_command = motion_command
         self._apply_scale_to_targets(self.current_scale)
+        if self.per_object_group:
+            self.num_groups = int(getattr(motion_command, "num_object_groups", 1))
+            self._init_group_state()
 
     def reset(self, env_ids) -> None:
         if not self.enabled or self.motion_command is None:
@@ -99,6 +115,14 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
         success_values = success_values.to(device=self.env.device, dtype=torch.float32).flatten()
         self.accumulated_success_sum += success_values.sum()
         self.accumulated_success_count += success_values.numel()
+        if self.per_object_group:
+            # the gen environments whose episodes these are, in the same order (set by the env's _fill_extras)
+            gen_env_ids = getattr(self.env, "hybrid_gen_reset_env_ids", None)
+            if gen_env_ids is None or gen_env_ids.numel() != success_values.numel():
+                return
+            groups = self.motion_command.env_object_group[gen_env_ids.to(self.env.device)]
+            self.group_success_sum.index_add_(0, groups, success_values)
+            self.group_success_count.index_add_(0, groups, torch.ones_like(groups))
 
     def step(self) -> None:
         return
@@ -116,6 +140,8 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
         self.collect_rollout = self._should_collect_rollout(int(training_step))
         self.accumulated_success_sum.zero_()
         self.accumulated_success_count.zero_()
+        self.group_success_sum.zero_()
+        self.group_success_count.zero_()
 
     def on_rollout_end(
         self,
@@ -143,6 +169,13 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
             self.success_ema = batch_mean
             self.has_success_ema = True
 
+        if self.per_object_group:
+            self._update_group_scales()
+            self.accumulated_success_sum.zero_()
+            self.accumulated_success_count.zero_()
+            self.collect_rollout = False
+            return
+
         next_scale = self.current_scale.clone()
         if float(self.success_ema.item()) > self.success_threshold_up:
             next_scale = torch.clamp(next_scale + self.scale_step, min=self.min_scale, max=self.max_scale)
@@ -156,6 +189,34 @@ class HybridGenNoiseCurriculum(CurriculumTermBase):
         self.collect_rollout = False
 
         self._apply_scale_to_targets(self.current_scale)
+        if scale_changed:
+            self._reapply_goal_noise_targets(None)
+
+    def _update_group_scales(self) -> None:
+        """Step each object group's scale by its own success EMA; groups without finished gen episodes keep theirs."""
+        assert self.motion_command is not None
+        seen = self.group_success_count > 0
+        batch = self.group_success_sum / self.group_success_count.clamp(min=1).to(torch.float32)
+        ema = torch.where(
+            self.group_has_success_ema,
+            (1.0 - self.ema_alpha) * self.group_success_ema + self.ema_alpha * batch,
+            batch,
+        )
+        self.group_success_ema = torch.where(seen, ema, self.group_success_ema)
+        self.group_has_success_ema |= seen
+
+        step = torch.zeros_like(self.group_scale)
+        step[seen & (self.group_success_ema > self.success_threshold_up)] = self.scale_step
+        step[seen & (self.group_success_ema < self.success_threshold_down)] = -self.scale_step
+        next_scale = torch.clamp(self.group_scale + step, min=self.min_scale, max=self.max_scale)
+        scale_changed = not torch.allclose(next_scale, self.group_scale)
+        self.group_scale = next_scale
+        self.current_scale = next_scale.mean()
+        self.group_success_sum.zero_()
+        self.group_success_count.zero_()
+
+        self._apply_scale_to_targets(self.current_scale)
+        self.motion_command.set_object_goal_noise_group_scales(self.group_scale)
         if scale_changed:
             self._reapply_goal_noise_targets(None)
 

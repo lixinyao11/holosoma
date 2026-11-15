@@ -34,6 +34,7 @@ g1_29dof_wbt_curriculum_hybrid_object = replace(
                 "success_threshold_down": 0.80,
                 "update_interval": 20,
                 "ema_alpha": 0.5,
+                "per_object_group": False,
             },
         ),
     },

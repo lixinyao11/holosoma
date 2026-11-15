@@ -246,3 +246,77 @@ def test_hybrid_object_goal_noise_curriculum_requires_object_backed_hybrid_motio
         assert "no object data" in str(exc)
     else:
         raise AssertionError("Expected setup() to reject hybrid motions without objects.")
+
+
+def test_hybrid_object_goal_noise_curriculum_per_object_group_steps_each_group_by_its_own_success():
+    motion_command = object.__new__(HybridMotionCommand)
+    motion_command.device = torch.device("cpu")
+    motion_command.num_envs = 4
+    motion_command.motion = SimpleNamespace(has_object=True)
+    motion_command.num_object_groups = 2
+    motion_command.env_object_group = torch.tensor([0, 0, 1, 1], dtype=torch.long)
+    motion_command.set_object_goal_noise_curriculum_scale = lambda scale: None
+    motion_command.set_object_goal_noise_group_scales = lambda scales: setattr(
+        motion_command, "applied_group_scales", scales.clone()
+    )
+    motion_command.reapply_gen_object_goal_noise = lambda env_ids: None
+    curriculum = _make_hybrid_object_goal_noise_curriculum(
+        params={
+            "update_interval": 1,
+            "success_threshold_up": 0.7,
+            "success_threshold_down": 0.5,
+            "scale_step": 0.1,
+            "per_object_group": True,
+        },
+        motion_command=motion_command,
+        extras={"episode": {"hybrid/success/gen": torch.tensor([1.0, 1.0, 0.0], dtype=torch.float32)}},
+    )
+    curriculum.env.hybrid_gen_reset_env_ids = torch.tensor([0, 1, 3], dtype=torch.long)
+
+    curriculum.setup()
+    curriculum.on_training_step(0)
+    curriculum.reset(torch.tensor([0, 1, 3], dtype=torch.long))
+    curriculum.on_rollout_end(0)
+
+    # group 0 succeeded (scale up), group 1 failed (already at min_scale); the shared EMA (2/3) alone would not move
+    assert torch.allclose(curriculum.group_success_ema, torch.tensor([1.0, 0.0]))
+    assert torch.allclose(curriculum.group_scale, torch.tensor([0.4, 0.3]))
+    assert torch.allclose(motion_command.applied_group_scales, torch.tensor([0.4, 0.3]))
+
+    # a rollout with episodes from group 1 only leaves group 0's EMA and scale alone
+    curriculum.env.extras["episode"]["hybrid/success/gen"] = torch.tensor([1.0, 1.0], dtype=torch.float32)
+    curriculum.env.hybrid_gen_reset_env_ids = torch.tensor([2, 3], dtype=torch.long)
+    curriculum.on_training_step(1)
+    curriculum.reset(torch.tensor([2, 3], dtype=torch.long))
+    curriculum.on_rollout_end(1)
+    assert torch.allclose(curriculum.group_success_ema, torch.tensor([1.0, 0.5]))
+    assert torch.allclose(curriculum.group_scale, torch.tensor([0.4, 0.3]))
+
+
+def test_hybrid_object_goal_noise_group_scales_scale_each_environment_goal_noise():
+    from holosoma.config_types.command import GoalPoseNoiseConfig
+
+    command = object.__new__(HybridMotionCommand)
+    command.device = torch.device("cpu")
+    command.num_envs = 512
+    command.motion = SimpleNamespace(has_object=True)
+    command.hybrid_cfg = SimpleNamespace(
+        object_goal_noise=GoalPoseNoiseConfig(
+            pos_std_xyz=[0.5, 0.5, 0.001], pos_clip_xyz=[1.0, 1.0, 0.001], rpy_std=[0.0, 0.0, 0.4], rpy_clip=[0.0, 0.0, 0.8]
+        )
+    )
+    command.env_object_group = torch.arange(512) % 2
+    command._fixed_size_randomization_enabled = lambda: False
+    command._exact_goal_object_pos_w = torch.zeros(512, 3)
+    command._exact_goal_object_quat_w = torch.tensor([[0.0, 0.0, 0.0, 1.0]]).repeat(512, 1)
+    command._active_goal_object_pos_w = torch.zeros(512, 3)
+    command._active_goal_object_quat_w = torch.tensor([[0.0, 0.0, 0.0, 1.0]]).repeat(512, 1)
+
+    command.set_object_goal_noise_group_scales(torch.tensor([0.0, 0.5]))
+    command._apply_gen_object_goal_noise(torch.arange(512))
+
+    xy = command._active_goal_object_pos_w[:, :2]
+    assert torch.equal(xy[0::2], torch.zeros(256, 2))  # group 0 at scale 0: the exact goal
+    assert float(xy[1::2].abs().max()) <= 0.5 + 1.0e-6  # group 1: clip 1.0 m scaled by 0.5
+    assert float(xy[1::2].std()) > 0.15
+    assert torch.allclose(command._active_goal_object_quat_w[0::2], command._exact_goal_object_quat_w[0::2])

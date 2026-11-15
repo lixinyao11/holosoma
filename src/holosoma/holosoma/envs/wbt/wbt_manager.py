@@ -423,6 +423,14 @@ class WholeBodyTrackingManager(BaseTask):
                 self.log_dict["curriculum/object_goal_noise_yaw_clip"] = (
                     (rpy_clip[2] * rpy_scale[2]).detach().cpu()
                 )
+                if getattr(gen_noise_curriculum, "per_object_group", False):
+                    for g in range(gen_noise_curriculum.num_groups):
+                        self.log_dict[f"curriculum/object_goal_noise_scale_group{g}"] = (
+                            gen_noise_curriculum.group_scale[g].detach().cpu()
+                        )
+                        self.log_dict[f"curriculum/object_goal_noise_success_ema_group{g}"] = (
+                            gen_noise_curriculum.group_success_ema[g].detach().cpu()
+                        )
 
 
     def _get_hybrid_mode_masks(self, env_ids: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor] | None:
@@ -575,6 +583,10 @@ class WholeBodyTrackingManager(BaseTask):
                 reward_episode_metrics,
                 gen_reset_mask,
             )
+            # which environments those gen episodes ran in (the per-object-group goal-noise curriculum)
+            reset_ids = torch.arange(self.num_envs, device=self.device) if env_ids is None else env_ids
+            reset_ids = torch.as_tensor(reset_ids, dtype=torch.long, device=gen_reset_mask.device)
+            self.hybrid_gen_reset_env_ids = reset_ids[gen_reset_mask]
         self._pending_termination_episode_metrics = {}
         self.extras["time_outs"] = self.time_out_buf
 
